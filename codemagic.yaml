@@ -1,0 +1,63 @@
+# بناء سحابي تلقائي للأندرويد والآيفون — Codemagic
+# يبني التطبيق على خوادم Codemagic (لينكس للأندرويد، Mac للآيفون) دون حاجة لجهازك أو لجهاز Mac.
+# الاستخدام: ارفع المشروع إلى مستودع Git، اربطه في codemagic.io، ثم شغّل الـ workflow.
+
+workflows:
+  # ============ أندرويد ============
+  android:
+    name: Awqaf - Android APK
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+    scripts:
+      - name: تجهيز منصّات المشروع
+        script: |
+          flutter create --platforms=android,ios .
+          MAN=android/app/src/main/AndroidManifest.xml
+          if ! grep -q "android.permission.CAMERA" "$MAN"; then
+            sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA"/>\n    <application#' "$MAN"
+          fi
+      - name: تنزيل الحزم
+        script: flutter pub get
+      - name: بناء APK
+        script: flutter build apk --release
+      - name: بناء حزمة Play (AAB)
+        script: flutter build appbundle --release
+    artifacts:
+      - build/**/outputs/**/*.apk
+      - build/**/outputs/**/*.aab
+    publishing:
+      email:
+        recipients:
+          - sammer.khair@gmail.com   # غيّره للبريد الذي تريد وصول الملفات إليه
+
+  # ============ آيفون ============
+  ios:
+    name: Awqaf - iOS
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: تجهيز منصّات المشروع
+        script: |
+          flutter create --platforms=ios,android .
+          PLIST=ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string يحتاج التطبيق إلى الكاميرا لتصوير الأغراض الفائضة" "$PLIST" 2>/dev/null || true
+      - name: تنزيل الحزم
+        script: flutter pub get
+      - name: بناء iOS (بدون توقيع — للتجربة)
+        script: flutter build ios --release --no-codesign
+    artifacts:
+      - build/ios/iphoneos/*.app
+    publishing:
+      email:
+        recipients:
+          - sammer.khair@gmail.com
+
+# ملاحظة عن الآيفون:
+#  هذا البناء "بدون توقيع" يثبت نجاح البناء وينتج ملف .app للاختبار،
+#  لكن التثبيت على جهاز فعلي أو النشر على App Store يتطلب حساب Apple Developer
+#  وإضافة شهاداته في إعدادات Codemagic (قسم Code signing). عندها يصبح الناتج .ipa جاهزاً للنشر.
