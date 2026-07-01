@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///   https://app.awqaf-damas.com
 /// عند التجربة على محاكي أندرويد استخدم 10.0.2.2 بدل localhost.
 /// عند التجربة على جهاز حقيقي استخدم رابط النفق العام (Tunnelmole):
-const String kApiBase = 'https://fmbcmi-ip-47-65-242-67.tunnelmole.net';
+const String kApiBase = 'https://ue89sx-ip-47-65-242-67.tunnelmole.net';
 
 /// نموذج المستخدم.
 class AppUser {
