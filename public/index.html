@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0B6E4F">
+<title>أوقاف دمشق — تبادل مستلزمات المساجد</title>
+<link rel="manifest" href="/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0B6E4F;
+    --primary-dark: #08503A;
+    --primary-light: #E7F2EE;
+    --gold: #C9A227;
+    --gold-light: #F7EFD6;
+    --bg-warm: #FAF8F5;
+    --card-bg: #FFFFFF;
+    --text-main: #112A20;
+    --text-muted: #6B7C75;
+    --border-color: #E6EAE7;
+    --red: #C0392B;
+    --red-light: #FBEBE9;
+    --amber: #B97A0A;
+    --amber-l: #FBF1DD;
+    --blue: #1F6FB2;
+    --blue-l: #E7F1F9;
+    --radius: 16px;
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    font-family: 'Tajawal', sans-serif;
+  }
+  body {
+    background-color: #ECE9E2;
+    background-image: radial-gradient(circle, #F6F4EE 10%, #ECE9E2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 0;
+    color: var(--text-main);
+  }
+  #app {
+    max-width: 480px;
+    width: 100%;
+    height: 860px;
+    max-height: 96vh;
+    border-radius: 40px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.18), 0 0 0 10px #333;
+    overflow: hidden;
+    position: relative;
+    border: 4px solid #111;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-warm);
+  }
+  @media (max-width: 500px) {
+    body {
+      padding: 0;
+      background: var(--bg-warm);
+    }
+    #app {
+      max-width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+      border: 0;
+      box-shadow: none;
+    }
+  }
+  .hide { display: none !important; }
+
+  /* header */
+  .head {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    padding: 16px 16px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 2px 10px rgba(8, 80, 58, 0.15);
+  }
+  .head .row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+  .logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo svg {
+    width: 26px;
+    height: 26px;
+  }
+  .head .ttl {
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+  .head .sub {
+    font-size: 11px;
+    opacity: 0.85;
+  }
+  .head .out {
+    margin-inline-start: auto;
+    background: rgba(255,255,255,0.16);
+    border: 0;
+    color: #fff;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 11.5px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .head .out:hover {
+    background: rgba(255,255,255,0.24);
+  }
+  .who {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .who .pill {
+    margin-inline-start: auto;
+    background: var(--gold);
+    color: #3a2e05;
+    font-weight: 800;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px 86px;
+    background: var(--bg-warm);
+  }
+  .sec-h {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 2px 12px;
+  }
+  .sec-h h2 {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+  .sec-h .cnt {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+
+  /* cards & list grid */
+  .items-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .compact-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(11,110,79,0.03);
+  }
+  .compact-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(11,110,79,0.06);
+  }
+  .compact-card .c-ph {
+    height: 100px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    background-size: cover;
+    background-position: center;
+  }
+  .compact-card .c-bd {
+    padding: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .compact-card .c-bd h4 {
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .compact-card .c-mosque {
+    font-size: 11px;
+    color: var(--primary-dark);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .compact-card .c-time {
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+
+  .btn {
+    border: 0;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+  
+  .btn-pri { background: var(--primary); color: #fff; }
+  .btn-pri:hover { background: var(--primary-dark); }
+  .btn-ghost { background: var(--primary-light); color: var(--primary-dark); }
+  .btn-gold { background: var(--gold); color: #3a2e05; }
+  .btn-red { background: var(--red-light); color: var(--red); }
+  .btn-grey { background: #EEF2F0; color: var(--text-muted); }
+
+  .st {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .st-av { background: var(--primary-light); color: var(--primary-dark); }
+  .st-wait { background: var(--amber-l); color: var(--amber); }
+  .st-ok { background: var(--blue-l); color: var(--blue); }
+  .st-no { background: var(--red-l); color: var(--red); }
+  .st-done { background: #ECECEC; color: #555; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .stat {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 13px;
+  }
+  .stat .n {
+    font-size: 23px;
+    font-weight: 800;
+    color: var(--primary-dark);
+  }
+  .stat .l {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .stat.gold .n { color: var(--gold); }
+  .stat.amber .n { color: var(--amber); }
+  .stat.blue .n { color: var(--blue); }
+
+  .op {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 12px;
+    margin-bottom: 11px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.01);
+  }
+  .op .top {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 9px;
+  }
+  .op .ic {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+  }
+  .op .ti h3 { font-size: 13px; font-weight: 800; }
+  .op .flow {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .op .flow b { color: var(--text-main); font-weight: 700; }
+  .arrow { color: var(--gold); font-weight: 800; }
+  .op .note {
+    font-size: 11.5px;
+    background: var(--bg-warm);
+    border-radius: 9px;
+    padding: 7px 9px;
+    margin-top: 8px;
+    color: #52635c;
+    line-height: 1.5;
+  }
+  .op .when { font-size: 10.5px; color: var(--text-muted); margin-top: 7px; }
+
+  /* Premium mockup banner */
+  .home-banner {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(11, 110, 79, 0.15);
+  }
+  .home-banner::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+  }
+  .banner-text h3 {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .banner-text p {
+    font-size: 11px;
+    opacity: 0.9;
+  }
+  .banner-icon {
+    font-size: 38px;
+    opacity: 0.85;
+    z-index: 1;
+  }
+
+  /* search bar */
+  .search-wrapper {
+    position: relative;
+    margin-bottom: 15px;
+  }
+  .search-input {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color);
+    background: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: 0.2s;
+  }
+  .search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(11, 110, 79, 0.1);
+  }
+  .search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    font-size: 15px;
+  }
+
+  /* bottom nav with floating plus button */
+  .nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 72px;
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 25;
+    padding: 0 8px;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+  }
+  .nav button {
+    flex: 1;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .nav button.active {
+    color: var(--primary);
+  }
+  .nav button svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2.2px;
+  }
+  .nav-add-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    border: 4px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(11, 110, 79, 0.3);
+    margin-top: -24px;
+    transition: 0.2s;
+  }
+  .nav-add-btn:active {
+    transform: scale(0.92);
+  }
+
+  /* sheet */
+  .ov {
+    position: absolute;
+    inset: 0;
+    background: rgba(12,30,24,0.55);
+    z-index: 40;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .ov.show { display: flex; }
+  .sheet {
+    background: #fff;
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    padding: 8px 18px 24px;
+    max-height: 92%;
+    overflow-y: auto;
+  }
+  .grip {
+    width: 42px;
+    height: 5px;
+    background: var(--border-color);
+    border-radius: 5px;
+    margin: 6px auto 14px;
+  }
+  .sheet h2 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .sheet .lead { font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 12px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-warm);
+    color: var(--text-main);
+  }
+  .field textarea { resize: none; height: 74px; }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  .photobox {
+    border: 2px dashed var(--primary);
+    background: var(--primary-light);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    color: var(--primary-dark);
+    font-weight: 700;
+    font-size: 12.5px;
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .photobox .em { font-size: 32px; margin-bottom: 6px; }
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 13px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border-color);
+    background: #fff;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+  .chip.on {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+  .empty .em { font-size: 42px; opacity: 0.6; }
+  .empty b { display: block; margin: 10px 0 4px; color: var(--text-main); }
+  .empty p { font-size: 12px; }
+  
+  .toast {
+    position: absolute;
+    bottom: 84px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--primary-dark);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 12px 18px;
+    border-radius: 13px;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+    max-width: 88%;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* login screens */
+  .login {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 30px 24px;
+    background: linear-gradient(160deg, var(--primary-dark), var(--primary) 70%, #0a6045);
+    overflow-y: auto;
+  }
+  .login .brand { text-align: center; color: #fff; }
+  .login .brand h1 { font-size: 21px; font-weight: 800; }
+  .login .brand p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .login .box { background: #fff; border-radius: 20px; padding: 22px; width: 100%; }
+  .login .box h2 { font-size: 16px; font-weight: 800; margin-bottom: 4px; color: var(--text-main); }
+  .login .box p { font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px; }
+  .login .demo {
+    margin-top: 16px;
+    background: var(--gold-light);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 11.5px;
+    color: #6a5410;
+    line-height: 1.7;
+  }
+  .login .demo b { color: #3a2e05; }
+  .login .demo code { background: #fff; padding: 1px 6px; border-radius: 5px; font-family: monospace; cursor: pointer; font-weight: 700; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- شاشة الدخول والترحيب -->
+  <div class="login" id="login">
+    <!-- Splash Screen (الشاشة الترحيبية من الصورة) -->
+    <div id="splashScreen" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; width:100%;">
+      <div class="brand" style="margin-top:40px">
+        <div class="logo" style="border:1.5px solid var(--gold); display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); width:90px; height:90px; border-radius:30px; margin: 0 auto 16px">
+          <svg
+   width="637.98"
+   height="478.74"
+   viewBox="0 0 212.66 159.58"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="Emblem_of_Syria_(2025–present) (4).svg"
+   inkscape:version="1.4.2 (ebf0e94, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.8720809"
+     inkscape:cx="272.91046"
+     inkscape:cy="209.26958"
+     inkscape:window-width="1920"
+     inkscape:window-height="1094"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3" />
+  <path
+     fill="#b9a77a"
+     d="m 174.75,64.76 c -0.51,0.49 -1.03,0.97 -1.56,1.43 l 24.97,37.26 -9.49,-1.27 c -3.07,-0.41 -5.78,-2.23 -7.32,-4.92 l -14.9,-25.99 c -0.59,0.38 -1.19,0.75 -1.8,1.1 l 23.89,43.44 -9.5,-1.91 c -3.11,-0.63 -5.74,-2.7 -7.07,-5.58 L 157.07,76.1 c -0.65,0.27 -1.31,0.52 -1.98,0.76 l 15.62,35.35 -7.25,-1.46 c -3.41,-0.69 -6.22,-3.11 -7.4,-6.38 l -9.1,-25.26 c -0.69,0.14 -1.39,0.26 -2.08,0.37 l 10.07,29.57 -5.42,-1.09 c -3.72,-0.75 -6.68,-3.55 -7.65,-7.21 l -5.19,-19.61 v 0 c -0.67,0.18 -1.33,0.38 -1.98,0.6 l 6.01,24.45 -3.88,-0.78 C 132.81,104.6 129.7,101.4 129,97.35 l -2.15,-12.43 -3.71,8.6 c -0.41,0.96 -0.31,2.06 0.26,2.93 l 11.44,17.23 c 0.16,0.24 0.25,0.51 0.27,0.8 l 0.22,3.26 7.21,7.21 h 16.95 v 7.4 l -3.61,-3.61 h -3.98 l 3.78,3.78 -4.12,4.12 v -4.12 l -3.79,-3.78 h -3.64 l -3.79,3.78 v 3.26 l -4.4,-4.41 3.82,-3.72 -6.73,-6.73 -2.42,0.27 c -0.38,0.04 -0.77,-0.05 -1.09,-0.26 l -14.15,-9.4 10.17,13.73 16.19,21.87 h -6.83 c -3.87,0 -7.39,-2.25 -9.02,-5.76 l -5.94,-12.77 c -0.56,0.26 -1.13,0.51 -1.7,0.73 l 9.53,24.02 h -3.29 c -4.81,0 -8.93,-3.44 -9.79,-8.17 l -2.57,-14.1 c -0.56,0.1 -1.12,0.19 -1.7,0.26 l 2.15,16.84 c 0.41,3.24 -0.79,6.47 -3.21,8.66 l -3.04,2.74 -3.04,-2.74 c -2.42,-2.18 -3.62,-5.42 -3.21,-8.65 l 2.15,-16.84 c -0.57,-0.07 -1.13,-0.16 -1.7,-0.26 l -2.57,14.1 c -0.86,4.73 -4.98,8.17 -9.79,8.17 h -3.29 l 9.53,-24.02 c -0.57,-0.22 -1.14,-0.47 -1.7,-0.73 l -5.94,12.77 c -1.63,3.51 -5.15,5.76 -9.02,5.76 h -6.83 l 16.19,-21.87 10.17,-13.73 -14.15,9.4 c -0.32,0.21 -0.71,0.31 -1.09,0.26 l -2.42,-0.27 -6.73,6.73 3.82,3.72 -4.4,4.41 v -3.26 l -3.79,-3.78 h -3.64 l -3.79,3.78 v 4.12 l -4.12,-4.12 3.78,-3.78 h -3.98 l -3.61,3.61 v -7.4 H 70.1 l 7.21,-7.21 0.23,-3.26 c 0.02,-0.28 0.11,-0.56 0.27,-0.79 L 89.25,96.47 c 0.58,-0.87 0.68,-1.97 0.26,-2.93 L 85.8,84.93 v 0 l -2.15,12.43 c -0.7,4.05 -3.82,7.25 -7.85,8.06 l -3.87,0.78 6.01,-24.46 c -0.65,-0.22 -1.32,-0.41 -1.99,-0.6 l -5.18,19.62 c -0.97,3.67 -3.94,6.47 -7.66,7.21 l -5.42,1.09 10.08,-29.57 c -0.7,-0.1 -1.39,-0.23 -2.08,-0.36 l -9.1,25.27 c -1.18,3.28 -3.99,5.7 -7.4,6.38 l -7.25,1.46 15.61,-35.37 c -0.67,-0.23 -1.32,-0.49 -1.97,-0.75 l -14.9,32.21 c -1.33,2.88 -3.96,4.95 -7.07,5.58 L 24.1,115.82 48.01,72.38 C 47.4,72.03 46.8,71.66 46.21,71.27 l -14.9,26 c -1.54,2.69 -4.25,4.51 -7.32,4.92 L 14.5,103.46 39.47,66.19 C 38.94,65.73 38.42,65.25 37.9,64.76 L 23.84,84.97 c -1.73,2.49 -4.49,4.05 -7.52,4.25 L 6.99,89.84 32.21,58.5 C 31.77,57.95 31.35,57.38 30.93,56.8 L 16.94,73.58 c -1.89,2.27 -4.69,3.58 -7.64,3.58 H 0 L 44.7,30.58 c 2.41,-2.51 5.73,-3.93 9.21,-3.93 h 9.97 c 2.67,0 4.83,2.16 4.83,4.83 v 5.63 c 0,4.54 1.52,8.72 4.06,12.07 3.64,4.8 9.41,7.9 15.91,7.9 1.44,0 2.85,-0.16 4.21,-0.45 1.08,-0.23 1.96,-1.03 2.25,-2.1 l 3.54,-12.81 c 0.05,-0.23 0.06,-0.47 0.02,-0.7 -0.24,-1.55 -2.34,-2.52 -4.7,-2.16 -1.89,0.28 -3.595994,1.18797 -4.036671,2.54 0,0 -0.763329,-2.04 -0.783329,-3.56 -0.03,-1.96 0.81,-3.05 2.71,-4.01 l 3.3,-1.55 c 2.08,-1.91 5.46,-3.14 9.3,-3.14 5.9,0 10.76,2.93 11.38,6.72 l 0.06,0.46 2.39,17.98 c 0.17,1.28 1.16,2.31 2.44,2.52 1.05,0.17 2.12,0.26 3.22,0.26 6.49,0 12.26,-3.09 15.91,-7.9 2.55,-3.35 4.06,-7.53 4.06,-12.07 v -5.63 c 0,-2.67 2.16,-4.83 4.83,-4.83 h 9.97 c 3.48,0 6.8,1.42 9.21,3.93 l 44.7,46.58 h -9.28 c -2.95,0 -5.75,-1.31 -7.64,-3.58 l -14,-16.78 c -0.41,0.57 -0.83,1.14 -1.27,1.7 l 25.21,31.34 -9.34,-0.62 c -3.02,-0.2 -5.79,-1.76 -7.52,-4.25 L 174.76,64.76 Z"
+     id="path1"
+     style="fill:#b8a57b;fill-opacity:1"
+     sodipodi:nodetypes="cccccccccccccccccccccsccccccccccccccccccccccccccccccsccccscccccccccccsccccsccccccccccccccccccccccccccccccccccccccccccccccccccccccccccsccsssscscccccccccsccccscssssccscccccccc" />
+  <polygon
+     fill="#b9a77a"
+     points="100.41 18.2 106.32 13.9 112.23 18.2 109.97 11.25 115.88 6.95 108.58 6.95 106.32 0 104.06 6.95 96.76 6.95 102.67 11.25 100.41 18.2"
+     id="polygon1"
+     style="fill:#b8a57b;fill-opacity:1" />
+  <polygon
+     fill="#b9a77a"
+     points="129.94 18.38 133.72 24.63 134.33 17.34 141.44 15.67 134.71 12.84 135.32 5.56 130.55 11.09 123.81 8.26 127.6 14.52 122.82 20.05 129.94 18.38"
+     id="polygon2"
+     style="fill:#b8a57b;fill-opacity:1" />
+  <polygon
+     fill="#b9a77a"
+     points="78.31 17.35 78.85 24.64 82.7 18.43 89.79 20.17 85.07 14.59 88.91 8.38 82.16 11.14 77.44 5.56 77.98 12.84 71.21 15.61 78.31 17.35"
+     id="polygon3"
+     style="fill:#b8a57b;fill-opacity:1" />
+</svg>
+        </div>
+        <h1 style="font-size:23px; font-weight:800; color:#fff">مديرية أوقاف دمشق</h1>
+        <p style="font-size:13.5px; opacity:0.95; color:var(--gold-light); margin-top:6px; font-weight:700">شارك الخير... تنفع غيرك</p>
+      </div>
+      
+      <!-- Minaret Silhouette Representation with CSS -->
+      <div style="position:relative; flex:1; display:flex; flex-direction:column; justify-content:flex-end; padding-bottom:10px; margin-top:20px">
+        <div style="position:absolute; bottom:0; left:0; right:0; height:180px; opacity:0.18; pointer-events:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 preserveAspectRatio=%22none%22><path d=%22M10 100 L10 50 L12 50 L12 40 L15 40 L15 10 L16 10 L16 0 L17 10 L18 10 L18 40 L21 40 L21 50 L23 50 L23 100 Z M50 100 L50 30 L53 30 L53 20 L57 20 L57 0 L58 0 L58 -5 L59 0 L60 0 L60 20 L64 20 L64 30 L67 30 L67 100 Z M80 100 L80 60 L82 60 L82 50 L85 50 L85 20 L86 20 L86 10 L87 20 L88 20 L88 50 L91 50 L91 60 L93 60 L93 100 Z%22 fill=%22%23ffffff%22/></svg>'); background-size:cover; background-repeat:no-repeat;"></div>
+        
+        <div style="z-index:2; display:flex; flex-direction:column; gap:12px; width:100%;">
+          <button class="btn btn-pri" style="font-size:14.5px; padding:13px; border-radius:25px; box-shadow: 0 4px 15px rgba(0,0,0,0.15);" onclick="showLoginInput()">تسجيل الدخول</button>
+          <button class="btn" style="background:#fff; color:var(--primary); font-size:14.5px; padding:13px; border-radius:25px; font-weight:800; border: 1.5px solid var(--primary);" onclick="showRegisterNotice()">إنشاء حساب جديد</button>
+          <button class="btn" style="color:rgba(255,255,255,0.9); font-size:13.5px; font-weight:700; background:transparent; padding:8px;" onclick="guestMode()">تخطي</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Login Input Form (النموذج) -->
+    <div id="loginForm" class="hide" style="height:100%; display:flex; flex-direction:column; justify-content:space-between; width:100%">
+      <div class="brand" style="margin-top:10px; margin-bottom:15px">
+        <div class="logo" style="border:1px solid rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; width:50px; height:50px; border-radius:15px; margin:0 auto 10px">
+          <svg
+   width="637.98"
+   height="478.74"
+   viewBox="0 0 212.66 159.58"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="Emblem_of_Syria_(2025–present) (4).svg"
+   inkscape:version="1.4.2 (ebf0e94, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.8720809"
+     inkscape:cx="272.91046"
+     inkscape:cy="209.26958"
+     inkscape:window-width="1920"
+     inkscape:window-height="1094"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3" />
+  <path
+     fill="#b9a77a"
+     d="m 174.75,64.76 c -0.51,0.49 -1.03,0.97 -1.56,1.43 l 24.97,37.26 -9.49,-1.27 c -3.07,-0.41 -5.78,-2.23 -7.32,-4.92 l -14.9,-25.99 c -0.59,0.38 -1.19,0.75 -1.8,1.1 l 23.89,43.44 -9.5,-1.91 c -3.11,-0.63 -5.74,-2.7 -7.07,-5.58 L 157.07,76.1 c -0.65,0.27 -1.31,0.52 -1.98,0.76 l 15.62,35.35 -7.25,-1.46 c -3.41,-0.69 -6.22,-3.11 -7.4,-6.38 l -9.1,-25.26 c -0.69,0.14 -1.39,0.26 -2.08,0.37 l 10.07,29.57 -5.42,-1.09 c -3.72,-0.75 -6.68,-3.55 -7.65,-7.21 l -5.19,-19.61 v 0 c -0.67,0.18 -1.33,0.38 -1.98,0.6 l 6.01,24.45 -3.88,-0.78 C 132.81,104.6 129.7,101.4 129,97.35 l -2.15,-12.43 -3.71,8.6 c -0.41,0.96 -0.31,2.06 0.26,2.93 l 11.44,17.23 c 0.16,0.24 0.25,0.51 0.27,0.8 l 0.22,3.26 7.21,7.21 h 16.95 v 7.4 l -3.61,-3.61 h -3.98 l 3.78,3.78 -4.12,4.12 v -4.12 l -3.79,-3.78 h -3.64 l -3.79,3.78 v 3.26 l -4.4,-4.41 3.82,-3.72 -6.73,-6.73 -2.42,0.27 c -0.38,0.04 -0.77,-0.05 -1.09,-0.26 l -14.15,-9.4 10.17,13.73 16.19,21.87 h -6.83 c -3.87,0 -7.39,-2.25 -9.02,-5.76 l -5.94,-12.77 c -0.56,0.26 -1.13,0.51 -1.7,0.73 l 9.53,24.02 h -3.29 c -4.81,0 -8.93,-3.44 -9.79,-8.17 l -2.57,-14.1 c -0.56,0.1 -1.12,0.19 -1.7,0.26 l 2.15,16.84 c 0.41,3.24 -0.79,6.47 -3.21,8.66 l -3.04,2.74 -3.04,-2.74 c -2.42,-2.18 -3.62,-5.42 -3.21,-8.65 l 2.15,-16.84 c -0.57,-0.07 -1.13,-0.16 -1.7,-0.26 l -2.57,14.1 c -0.86,4.73 -4.98,8.17 -9.79,8.17 h -3.29 l 9.53,-24.02 c -0.57,-0.22 -1.14,-0.47 -1.7,-0.73 l -5.94,12.77 c -1.63,3.51 -5.15,5.76 -9.02,5.76 h -6.83 l 16.19,-21.87 10.17,-13.73 -14.15,9.4 c -0.32,0.21 -0.71,0.31 -1.09,0.26 l -2.42,-0.27 -6.73,6.73 3.82,3.72 -4.4,4.41 v -3.26 l -3.79,-3.78 h -3.64 l -3.79,3.78 v 4.12 l -4.12,-4.12 3.78,-3.78 h -3.98 l -3.61,3.61 v -7.4 H 70.1 l 7.21,-7.21 0.23,-3.26 c 0.02,-0.28 0.11,-0.56 0.27,-0.79 L 89.25,96.47 c 0.58,-0.87 0.68,-1.97 0.26,-2.93 L 85.8,84.93 v 0 l -2.15,12.43 c -0.7,4.05 -3.82,7.25 -7.85,8.06 l -3.87,0.78 6.01,-24.46 c -0.65,-0.22 -1.32,-0.41 -1.99,-0.6 l -5.18,19.62 c -0.97,3.67 -3.94,6.47 -7.66,7.21 l -5.42,1.09 10.08,-29.57 c -0.7,-0.1 -1.39,-0.23 -2.08,-0.36 l -9.1,25.27 c -1.18,3.28 -3.99,5.7 -7.4,6.38 l -7.25,1.46 15.61,-35.37 c -0.67,-0.23 -1.32,-0.49 -1.97,-0.75 l -14.9,32.21 c -1.33,2.88 -3.96,4.95 -7.07,5.58 L 24.1,115.82 48.01,72.38 C 47.4,72.03 46.8,71.66 46.21,71.27 l -14.9,26 c -1.54,2.69 -4.25,4.51 -7.32,4.92 L 14.5,103.46 39.47,66.19 C 38.94,65.73 38.42,65.25 37.9,64.76 L 23.84,84.97 c -1.73,2.49 -4.49,4.05 -7.52,4.25 L 6.99,89.84 32.21,58.5 C 31.77,57.95 31.35,57.38 30.93,56.8 L 16.94,73.58 c -1.89,2.27 -4.69,3.58 -7.64,3.58 H 0 L 44.7,30.58 c 2.41,-2.51 5.73,-3.93 9.21,-3.93 h 9.97 c 2.67,0 4.83,2.16 4.83,4.83 v 5.63 c 0,4.54 1.52,8.72 4.06,12.07 3.64,4.8 9.41,7.9 15.91,7.9 1.44,0 2.85,-0.16 4.21,-0.45 1.08,-0.23 1.96,-1.03 2.25,-2.1 l 3.54,-12.81 c 0.05,-0.23 0.06,-0.47 0.02,-0.7 -0.24,-1.55 -2.34,-2.52 -4.7,-2.16 -1.89,0.28 -3.595994,1.18797 -4.036671,2.54 0,0 -0.763329,-2.04 -0.783329,-3.56 -0.03,-1.96 0.81,-3.05 2.71,-4.01 l 3.3,-1.55 c 2.08,-1.91 5.46,-3.14 9.3,-3.14 5.9,0 10.76,2.93 11.38,6.72 l 0.06,0.46 2.39,17.98 c 0.17,1.28 1.16,2.31 2.44,2.52 1.05,0.17 2.12,0.26 3.22,0.26 6.49,0 12.26,-3.09 15.91,-7.9 2.55,-3.35 4.06,-7.53 4.06,-12.07 v -5.63 c 0,-2.67 2.16,-4.83 4.83,-4.83 h 9.97 c 3.48,0 6.8,1.42 9.21,3.93 l 44.7,46.58 h -9.28 c -2.95,0 -5.75,-1.31 -7.64,-3.58 l -14,-16.78 c -0.41,0.57 -0.83,1.14 -1.27,1.7 l 25.21,31.34 -9.34,-0.62 c -3.02,-0.2 -5.79,-1.76 -7.52,-4.25 L 174.76,64.76 Z"
+     id="path1"
+     style="fill:#b8a57b;fill-opacity:1"
+     sodipodi:nodetypes="cccccccccccccccccccccsccccccccccccccccccccccccccccccsccccscccccccccccsccccsccccccccccccccccccccccccccccccccccccccccccccccccccccccccccsccsssscscccccccccsccccscssssccscccccccc" />
+  <polygon
+     fill="#b9a77a"
+     points="100.41 18.2 106.32 13.9 112.23 18.2 109.97 11.25 115.88 6.95 108.58 6.95 106.32 0 104.06 6.95 96.76 6.95 102.67 11.25 100.41 18.2"
+     id="polygon1"
+     style="fill:#b8a57b;fill-opacity:1" />
+  <polygon
+     fill="#b9a77a"
+     points="129.94 18.38 133.72 24.63 134.33 17.34 141.44 15.67 134.71 12.84 135.32 5.56 130.55 11.09 123.81 8.26 127.6 14.52 122.82 20.05 129.94 18.38"
+     id="polygon2"
+     style="fill:#b8a57b;fill-opacity:1" />
+  <polygon
+     fill="#b9a77a"
+     points="78.31 17.35 78.85 24.64 82.7 18.43 89.79 20.17 85.07 14.59 88.91 8.38 82.16 11.14 77.44 5.56 77.98 12.84 71.21 15.61 78.31 17.35"
+     id="polygon3"
+     style="fill:#b8a57b;fill-opacity:1" />
+</svg>        </div>
+        <h2 style="font-size:16px; font-weight:800; color:#fff">مديرية أوقاف دمشق</h2>
+      </div>
+      
+      <div class="box" style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div id="step1">
+            <h2>تسجيل الدخول</h2>
+            <p>أدخل بريدك الإلكتروني أو رقم جوالك المسجّل لدى المديرية</p>
+            <div class="field"><input id="phone" inputmode="email" placeholder="البريد الإلكتروني أو رقم الجوال"></div>
+            <button class="btn btn-pri" style="width:100%" onclick="requestOtp()">إرسال رمز التحقق</button>
+          </div>
+          <div id="step2" class="hide">
+            <h2>رمز التحقق</h2>
+            <p>أدخل الرمز المُرسَل إلى <span id="phoneEcho"></span></p>
+            <div class="field"><input id="code" inputmode="numeric" placeholder="رمز مكوّن من 6 أرقام"></div>
+            <button class="btn btn-pri" style="width:100%" onclick="verifyOtp()">دخول</button>
+            <button class="btn btn-grey" style="margin-top:8px; width:100%" onclick="backToPhone()">تغيير الرقم</button>
+          </div>
+        </div>
+        
+        <div>
+          <div class="demo">
+            <b>حسابات تجريبية</b> (اضغط للتعبئة):<br>
+            <div style="display:flex; flex-direction:column; gap:5px; margin-top:5px">
+              <span style="cursor:pointer" onclick="fillPhone('0911000001')">🕌 قيم جامع الإيمان: <code>0911000001</code></span>
+              <span style="cursor:pointer" onclick="fillPhone('0922000000')">🏢 موظف الوزارة: <code>0922000000</code></span>
+              <span style="cursor:pointer" onclick="fillPhone('0933000000')">👑 المدير العام: <code>0933000000</code></span>
+            </div>
+          </div>
+          <button class="btn btn-grey" style="margin-top:12px; width:100%" onclick="showSplash()">← رجوع للشاشة الرئيسية</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- التطبيق -->
+  <div id="main" class="hide" style="flex:1;display:flex;flex-direction:column;height:100%">
+    <div class="head">
+      <div class="row">
+        <div class="logo"><svg
+   width="637.98"
+   height="478.74"
+   viewBox="0 0 212.66 159.58"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="Emblem_of_Syria_(2025–present) (4).svg"
+   inkscape:version="1.4.2 (ebf0e94, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.8720809"
+     inkscape:cx="272.91046"
+     inkscape:cy="209.26958"
+     inkscape:window-width="1920"
+     inkscape:window-height="1094"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3" />
+  <path
+     fill="#b9a77a"
+     d="m 174.75,64.76 c -0.51,0.49 -1.03,0.97 -1.56,1.43 l 24.97,37.26 -9.49,-1.27 c -3.07,-0.41 -5.78,-2.23 -7.32,-4.92 l -14.9,-25.99 c -0.59,0.38 -1.19,0.75 -1.8,1.1 l 23.89,43.44 -9.5,-1.91 c -3.11,-0.63 -5.74,-2.7 -7.07,-5.58 L 157.07,76.1 c -0.65,0.27 -1.31,0.52 -1.98,0.76 l 15.62,35.35 -7.25,-1.46 c -3.41,-0.69 -6.22,-3.11 -7.4,-6.38 l -9.1,-25.26 c -0.69,0.14 -1.39,0.26 -2.08,0.37 l 10.07,29.57 -5.42,-1.09 c -3.72,-0.75 -6.68,-3.55 -7.65,-7.21 l -5.19,-19.61 v 0 c -0.67,0.18 -1.33,0.38 -1.98,0.6 l 6.01,24.45 -3.88,-0.78 C 132.81,104.6 129.7,101.4 129,97.35 l -2.15,-12.43 -3.71,8.6 c -0.41,0.96 -0.31,2.06 0.26,2.93 l 11.44,17.23 c 0.16,0.24 0.25,0.51 0.27,0.8 l 0.22,3.26 7.21,7.21 h 16.95 v 7.4 l -3.61,-3.61 h -3.98 l 3.78,3.78 -4.12,4.12 v -4.12 l -3.79,-3.78 h -3.64 l -3.79,3.78 v 3.26 l -4.4,-4.41 3.82,-3.72 -6.73,-6.73 -2.42,0.27 c -0.38,0.04 -0.77,-0.05 -1.09,-0.26 l -14.15,-9.4 10.17,13.73 16.19,21.87 h -6.83 c -3.87,0 -7.39,-2.25 -9.02,-5.76 l -5.94,-12.77 c -0.56,0.26 -1.13,0.51 -1.7,0.73 l 9.53,24.02 h -3.29 c -4.81,0 -8.93,-3.44 -9.79,-8.17 l -2.57,-14.1 c -0.56,0.1 -1.12,0.19 -1.7,0.26 l 2.15,16.84 c 0.41,3.24 -0.79,6.47 -3.21,8.66 l -3.04,2.74 -3.04,-2.74 c -2.42,-2.18 -3.62,-5.42 -3.21,-8.65 l 2.15,-16.84 c -0.57,-0.07 -1.13,-0.16 -1.7,-0.26 l -2.57,14.1 c -0.86,4.73 -4.98,8.17 -9.79,8.17 h -3.29 l 9.53,-24.02 c -0.57,-0.22 -1.14,-0.47 -1.7,-0.73 l -5.94,12.77 c -1.63,3.51 -5.15,5.76 -9.02,5.76 h -6.83 l 16.19,-21.87 10.17,-13.73 -14.15,9.4 c -0.32,0.21 -0.71,0.31 -1.09,0.26 l -2.42,-0.27 -6.73,6.73 3.82,3.72 -4.4,4.41 v -3.26 l -3.79,-3.78 h -3.64 l -3.79,3.78 v 4.12 l -4.12,-4.12 3.78,-3.78 h -3.98 l -3.61,3.61 v -7.4 H 70.1 l 7.21,-7.21 0.23,-3.26 c 0.02,-0.28 0.11,-0.56 0.27,-0.79 L 89.25,96.47 c 0.58,-0.87 0.68,-1.97 0.26,-2.93 L 85.8,84.93 v 0 l -2.15,12.43 c -0.7,4.05 -3.82,7.25 -7.85,8.06 l -3.87,0.78 6.01,-24.46 c -0.65,-0.22 -1.32,-0.41 -1.99,-0.6 l -5.18,19.62 c -0.97,3.67 -3.94,6.47 -7.66,7.21 l -5.42,1.09 10.08,-29.57 c -0.7,-0.1 -1.39,-0.23 -2.08,-0.36 l -9.1,25.27 c -1.18,3.28 -3.99,5.7 -7.4,6.38 l -7.25,1.46 15.61,-35.37 c -0.67,-0.23 -1.32,-0.49 -1.97,-0.75 l -14.9,32.21 c -1.33,2.88 -3.96,4.95 -7.07,5.58 L 24.1,115.82 48.01,72.38 C 47.4,72.03 46.8,71.66 46.21,71.27 l -14.9,26 c -1.54,2.69 -4.25,4.51 -7.32,4.92 L 14.5,103.46 39.47,66.19 C 38.94,65.73 38.42,65.25 37.9,64.76 L 23.84,84.97 c -1.73,2.49 -4.49,4.05 -7.52,4.25 L 6.99,89.84 32.21,58.5 C 31.77,57.95 31.35,57.38 30.93,56.8 L 16.94,73.58 c -1.89,2.27 -4.69,3.58 -7.64,3.58 H 0 L 44.7,30.58 c 2.41,-2.51 5.73,-3.93 9.21,-3.93 h 9.97 c 2.67,0 4.83,2.16 4.83,4.83 v 5.63 c 0,4.54 1.52,8.72 4.06,12.07 3.64,4.8 9.41,7.9 15.91,7.9 1.44,0 2.85,-0.16 4.21,-0.45 1.08,-0.23 1.96,-1.03 2.25,-2.1 l 3.54,-12.81 c 0.05,-0.23 0.06,-0.47 0.02,-0.7 -0.24,-1.55 -2.34,-2.52 -4.7,-2.16 -1.89,0.28 -3.595994,1.18797 -4.036671,2.54 0,0 -0.763329,-2.04 -0.783329,-3.56 -0.03,-1.96 0.81,-3.05 2.71,-4.01 l 3.3,-1.55 c 2.08,-1.91 5.46,-3.14 9.3,-3.14 5.9,0 10.76,2.93 11.38,6.72 l 0.06,0.46 2.39,17.98 c 0.17,1.28 1.16,2.31 2.44,2.52 1.05,0.17 2.12,0.26 3.22,0.26 6.49,0 12.26,-3.09 15.91,-7.9 2.55,-3.35 4.06,-7.53 4.06,-12.07 v -5.63 c 0,-2.67 2.16,-4.83 4.83,-4.83 h 9.97 c 3.48,0 6.8,1.42 9.21,3.93 l 44.7,46.58 h -9.28 c -2.95,0 -5.75,-1.31 -7.64,-3.58 l -14,-16.78 c -0.41,0.57 -0.83,1.14 -1.27,1.7 l 25.21,31.34 -9.34,-0.62 c -3.02,-0.2 -5.79,-1.76 -7.52,-4.25 L 174.76,64.76 Z"
+     id="path1"
+     style="fill:#b8a57b;fill-opacity:1"
+     sodipodi:nodetypes="cccccccccccccccccccccsccccccccccccccccccccccccccccccsccccscccccccccccsccccsccccccccccccccccccccccccccccccccccccccccccccccccccccccccccsccsssscscccccccccsccccscssssccscccccccc" />
+  <polygon
+     fill="#b9a77a"
+     points="100.41 18.2 106.32 13.9 112.23 18.2 109.97 11.25 115.88 6.95 108.58 6.95 106.32 0 104.06 6.95 96.76 6.95 102.67 11.25 100.41 18.2"
+     id="polygon1"
+     style="fill:#b8a57b;fill-opacity:1" />
+  <polygon
+     fill="#b9a77a"
+     points="129.94 18.38 133.72 24.63 134.33 17.34 141.44 15.67 134.71 12.84 135.32 5.56 130.55 11.09 123.81 8.26 127.6 14.52 122.82 20.05 129.94 18.38"
+     id="polygon2"
+     style="fill:#b8a57b;fill-opacity:1" />
+  <polygon
+     fill="#b9a77a"
+     points="78.31 17.35 78.85 24.64 82.7 18.43 89.79 20.17 85.07 14.59 88.91 8.38 82.16 11.14 77.44 5.56 77.98 12.84 71.21 15.61 78.31 17.35"
+     id="polygon3"
+     style="fill:#b8a57b;fill-opacity:1" />
+</svg></div>
+        <div><div class="ttl">أوقاف دمشق</div><div class="sub">تبادل مستلزمات المساجد</div></div>
+        <button class="out" onclick="logout()">خروج</button>
+      </div>
+      <div class="who" id="who"></div>
+    </div>
+    <div class="screen" id="screen"></div>
+    <button class="fab hide" id="fab" onclick="openAdd()">+</button>
+    <div class="nav" id="nav"></div>
+  </div>
+</div>
+
+<div class="ov" id="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let token = localStorage.getItem('awqaf_token') || null;
+let user  = JSON.parse(localStorage.getItem('awqaf_user') || 'null');
+let tab='browse', addPhoto='', addCat=null, loginPhone='';
+let dbItems = [];
+let searchQuery = '';
+let selectedCategory = null;
+
+const EMOJI={'تكييف وتدفئة':'❄️','فرش وسجاد':'🟩','أثاث':'🪑','صوتيات':'🔊','إنارة':'💡','أخرى':'📦'};
+const CATS=Object.keys(EMOJI);
+const ST={available:{c:'st-av',t:'متاح للطلب'},pending:{c:'st-wait',t:'بانتظار موافقة الوزارة'},
+  approved:{c:'st-ok',t:'موافَق — بانتظار التسليم'},rejected:{c:'st-no',t:'مرفوض'},delivered:{c:'st-done',t:'تم التسليم'}};
+const emo=c=>EMOJI[c]||'📦';
+function ago(ts){const d=Math.floor((Date.now()-ts)/86400000);return d<=0?'اليوم':d===1?'أمس':`قبل ${d} أيام`}
+function stBadge(s){return `<span class="st ${ST[s].c}">${ST[s].t}</span>`}
+
+let favorites = JSON.parse(localStorage.getItem('awqaf_favorites') || '[]');
+
+/* ---- API helper ---- */
+async function api(path,opt={}){
+  const h={'Content-Type':'application/json'};
+  if(token)h['Authorization']='Bearer '+token;
+  const r=await fetch(API+path,{...opt,headers:h});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(data.error||'حدث خطأ');
+  return data;
+}
+
+/* ---- الدخول ---- */
+function fillPhone(p){document.getElementById('phone').value=p}
+function backToPhone(){document.getElementById('step2').classList.add('hide');document.getElementById('step1').classList.remove('hide')}
+async function requestOtp(){
+  const phone=document.getElementById('phone').value.trim();
+  if(!phone)return toast('أدخل البريد الإلكتروني أو رقم جوالك');
+  try{
+    const r=await api('/api/auth/request-otp',{method:'POST',body:JSON.stringify({identifier:phone})});
+    loginPhone=phone;
+    document.getElementById('phoneEcho').textContent=phone;
+    document.getElementById('step1').classList.add('hide');
+    document.getElementById('step2').classList.remove('hide');
+    if(r.dev_code){document.getElementById('code').value=r.dev_code;toast('رمز التحقق (تجريبي): '+r.dev_code)}
+  }catch(e){toast(e.message)}
+}
+async function verifyOtp(){
+  const code=document.getElementById('code').value.trim();
+  try{
+    const r=await api('/api/auth/verify-otp',{method:'POST',body:JSON.stringify({identifier:loginPhone,code})});
+    token=r.token;user=r.user;
+    localStorage.setItem('awqaf_token',token);localStorage.setItem('awqaf_user',JSON.stringify(user));
+    enterApp();
+  }catch(e){toast(e.message)}
+}
+function logout(){token=null;user=null;localStorage.removeItem('awqaf_token');localStorage.removeItem('awqaf_user');location.reload()}
+
+function enterApp(){
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('main').classList.remove('hide');
+  if (user) {
+    if (user.role === 'guest') {
+      tab = 'browse';
+    } else {
+      tab = user.role==='imam'?'browse':user.role==='ministry'?'queue':'dash';
+    }
+  } else {
+    tab = 'browse';
+  }
+  renderWho();renderNav();render();
+}
+
+function showLoginInput() {
+  document.getElementById('splashScreen').classList.add('hide');
+  document.getElementById('loginForm').classList.remove('hide');
+}
+function showSplash() {
+  document.getElementById('loginForm').classList.add('hide');
+  document.getElementById('splashScreen').classList.remove('hide');
+}
+function showRegisterNotice() {
+  document.getElementById('ov').classList.add('show');
+  document.getElementById('sheet').innerHTML = `
+    <div class="grip"></div>
+    <h2 style="color:var(--primary); font-weight: 800">إنشاء حساب جديد</h2>
+    <p class="lead" style="line-height:1.8; font-size:13.5px; margin-bottom:20px">
+      أهلاً بك في نظام تبادل مستلزمات المساجد التابع لمديرية أوقاف دمشق.
+      <br><br>
+      <b>تنبيه هام:</b>
+      يتم تسجيل حسابات قيمي المساجد والموظفين وتفعيلها مركزياً من قِبل إدارة المساجد في المديرية أو المدير العام.
+      <br><br>
+      إذا كنت قيّماً على مسجد ولم يتم تسجيلك بعد، يرجى مراجعة شعبة شؤون المساجد بالمديرية لتسجيل اسمك ورقم جوالك والمسجد التابع لك لتتمكن من الدخول الفوري عبر رقم جواله أو بريده.
+    </p>
+    <button class="btn btn-pri" style="width:100%" onclick="closeSheet()">حسناً، فهمت</button>
+  `;
+}
+function guestMode() {
+  user = { role: 'guest', fullName: 'زائر', mosque: null };
+  token = null;
+  enterApp();
+}
+
+/* ---- الرأس والتنقل ---- */
+function renderWho(){
+  if (!user || user.role === 'guest') {
+    document.getElementById('who').innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> <b>زائر كريم</b><span class="pill" style="background:rgba(255,255,255,0.2);color:#fff">تصفح فقط</span>`;
+    return;
+  }
+  const roleLbl={imam:'قيّم مسجد',ministry:'موظف الوزارة',manager:'إشراف'}[user.role];
+  const sub=user.mosque?(' · '+user.mosque):'';
+  document.getElementById('who').innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> <b>${user.fullName}</b>${sub}<span class="pill">${roleLbl}</span>`;
+}
+
+function renderNav(){
+  const nav=document.getElementById('nav');
+  const I={
+    browse:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>',
+    mine:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+    queue:'<path d="M3 6h18M3 12h18M3 18h12"/>',
+    log:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+    dash:'<path d="M3 13h8V3H3zM13 21h8V8h-8z"/>',
+    mosques:'<path d="M3 21h18M5 21V10l7-5 7 5v11"/>',
+    favorites:'<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
+    more:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+    accounts:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>'
+  };
+  const mk=(id,l)=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${I[id]}</svg>${l}</button>`;
+  
+  if (!user || user.role === 'guest') {
+    nav.innerHTML = mk('browse', 'الرئيسية') + mk('favorites', 'المفضلة') + `<button onclick="toast('يجب تسجيل الدخول كقيم مسجد لرفع الأغراض')"><div class="nav-add-btn" style="background:#8fae9f; cursor:not-allowed">+</div></button>` + mk('more', 'المزيد');
+    document.getElementById('fab').classList.add('hide');
+    return;
+  }
+  
+  if(user.role==='imam') {
+    nav.innerHTML=mk('browse','الرئيسية') + mk('favorites','المفضلة') + `<button onclick="openAdd()"><div class="nav-add-btn">+</div></button>` + mk('mine','أغراضي') + mk('more','المزيد');
+    document.getElementById('fab').classList.add('hide');
+  }
+  if(user.role==='ministry') {
+    nav.innerHTML=mk('queue','الموافقات')+mk('log','السجل')+mk('accounts','الحسابات');
+    document.getElementById('fab').classList.add('hide');
+  }
+  if(user.role==='manager') {
+    nav.innerHTML=mk('dash','اللوحة')+mk('log','العمليات')+mk('mosques','المساجد')+mk('accounts','الحسابات');
+    document.getElementById('fab').classList.add('hide');
+  }
+}
+function go(t){tab=t;renderNav();render()}
+
+/* ---- العرض ---- */
+const screen=()=>document.getElementById('screen');
+function loading(){screen().innerHTML='<div class="empty"><span class="em">⏳</span><b>جارٍ التحميل…</b></div>'}
+async function render(){
+  loading();
+  try{
+    if (tab === 'browse') await renderBrowse();
+    else if (tab === 'favorites') await renderFavorites();
+    else if (tab === 'mine') await renderMine();
+    else if (tab === 'more') await renderMore();
+    else if (tab === 'queue') await ministry();
+    else if (tab === 'log') await logScreen();
+    else if (tab === 'mosques') await manager();
+    else if (tab === 'accounts') await accountsScreen();
+  }catch(e){screen().innerHTML=`<div class="empty"><span class="em">⚠️</span><b>${e.message}</b></div>`}
+  screen().scrollTop=0;
+}
+function emptyBox(em,t,s){return `<div class="empty"><span class="em">${em}</span><b>${t}</b><p>${s||''}</p></div>`}
+function phStyle(it){return it.photo?`style="background-image:url('${it.photo}')"`:''}
+
+function onSearchChange(val) {
+  searchQuery = val.toLowerCase().trim();
+  render();
+}
+
+function selectCategory(cat) {
+  if (selectedCategory === cat) {
+    selectedCategory = null;
+  } else {
+    selectedCategory = cat;
+  }
+  render();
+}
+
+/* تصفح الأغراض */
+async function renderBrowse() {
+  const {data}=await api('/api/items?scope=browse');
+  dbItems = data;
+  
+  let filtered = data;
+  if (selectedCategory) {
+    filtered = filtered.filter(i => i.category === selectedCategory);
+  }
+  if (searchQuery) {
+    filtered = filtered.filter(i => i.name.toLowerCase().includes(searchQuery) || i.sourceMosque.name.toLowerCase().includes(searchQuery));
+  }
+  
+  const bannerHtml = `
+    <div class="home-banner">
+      <div class="banner-text">
+        <h3>من مسجد إلى مسجد</h3>
+        <p>عطاء يبقى، وأجر لا ينقطع</p>
+      </div>
+      <div class="banner-icon">🕌</div>
+    </div>
+  `;
+  
+  const searchHtml = `
+    <div class="search-wrapper">
+      <input type="text" class="search-input" placeholder="البحث عن صنف أو مسجد..." value="${searchQuery}" oninput="onSearchChange(this.value)">
+      <span class="search-icon">🔍</span>
+    </div>
+  `;
+  
+  const categoriesHtml = `
+    <div style="margin-bottom: 15px;">
+      <h3 style="font-size: 13.5px; font-weight: 800; margin-bottom: 8px;">الأصناف المتاحة</h3>
+      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width: none;">
+        ${CATS.map(c => {
+          const isSel = selectedCategory === c;
+          return `<span class="chip ${isSel ? 'on' : ''}" onclick="selectCategory('${c}')" style="flex-shrink:0; margin:0; font-size:11.5px; padding:6px 12px">${emo(c)} ${c}</span>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+  
+  const listHtml = filtered.length 
+    ? `<div class="items-grid">${filtered.map(compactItemCard).join('')}</div>`
+    : emptyBox('📭', 'لا توجد أغراض مطابقة للبحث', 'تصفح الأصناف الأخرى أو عدل كلمات البحث');
+    
+  screen().innerHTML = bannerHtml + searchHtml + categoriesHtml + `<h3 style="font-size: 13.5px; font-weight: 800; margin-bottom: 10px;">أحدث الإضافات</h3>` + listHtml;
+}
+
+async function renderFavorites() {
+  const {data} = await api('/api/items?scope=browse');
+  const favItems = data.filter(i => favorites.includes(i.id));
+  
+  screen().innerHTML = `<div class="sec-h"><h2>الأصناف المفضلة</h2><span class="cnt">${favItems.length}</span></div>`
+    + (favItems.length 
+      ? `<div class="items-grid">${favItems.map(compactItemCard).join('')}</div>`
+      : emptyBox('❤️', 'المفضلة فارغة', 'اضغط على تفاصيل الغرض واحفظه بالقلب ليظهر هنا'));
+}
+
+async function renderMine() {
+  const {data}=await api('/api/items?scope=mine');
+  dbItems = data;
+  screen().innerHTML=`<div class="sec-h"><h2>أغراض مسجدي المرفوعة</h2><span class="cnt">${data.length}</span></div>`
+    +(data.length?`<div class="items-grid">${data.map(compactItemCard).join('')}</div>`:emptyBox('📦','لم ترفع أي غرض بعد','اضغط على الزر الدائري في المنتصف لرفع غرض'));
+}
+
+function compactItemCard(i) {
+  return `
+    <div class="compact-card" onclick="openDetails(${i.id})">
+      <div class="c-ph" ${phStyle(i)}>${i.photo ? '' : emo(i.category)}</div>
+      <div class="c-bd">
+        <h4>${i.name}</h4>
+        <div class="c-mosque">🕌 ${i.sourceMosque.name}</div>
+        <div class="c-time">⏱️ ${ago(i.createdAt)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function reqCard(i){
+  return `<div class="op"><div class="top"><div class="ic" ${phStyle(i)}>${i.photo?'':emo(i.category)}</div>
+    <div class="ti"><h3>${i.name}</h3><div class="flow"><b>${i.sourceMosque.name}</b> <span class="arrow">←</span> مسجدي</div></div></div>
+    <div>${stBadge(i.status)}</div>${i.decisionNote?`<div class="note">📋 ${i.decisionNote}</div>`:''}
+    <div class="when">${ago(i.createdAt)}</div></div>`;
+}
+
+/* تفاصيل الصنف (الشاشة 4 في النموذج) */
+function openDetails(itemId) {
+  const item = dbItems.find(i => i.id === itemId);
+  if (!item) return;
+  
+  const isFav = favorites.includes(itemId);
+  const favText = isFav ? '❤️ إزالة من المفضلة' : '🤍 حفظ في المفضلة';
+  
+  let actionsHtml = '';
+  // Owner actions
+  if (user && user.role === 'imam' && item.sourceMosqueId === user.mosqueId) {
+    if (item.status === 'available') {
+      actionsHtml = `<button class="btn btn-red" style="width:100%" onclick="delItem(${item.id}); closeSheet();">سحب الإعلان</button>`;
+    } else if (item.status === 'pending') {
+      actionsHtml = `<button class="btn btn-grey" style="width:100%" disabled>بانتظار موافقة الوزارة</button>`;
+    } else if (item.status === 'approved') {
+      actionsHtml = `<button class="btn btn-gold" style="width:100%" onclick="deliver(${item.id}); closeSheet();">✅ تأكيد التسليم</button>`;
+    }
+  } 
+  // Non-owner imam actions
+  else if (user && user.role === 'imam' && item.status === 'available') {
+    actionsHtml = `<button class="btn btn-pri" style="margin-bottom:8px; width:100%" onclick="reqItem(${item.id}); closeSheet();">🤲 طلب هذا الغرض</button>`;
+  }
+  // Ministry actions
+  else if (user && user.role === 'ministry' && item.status === 'pending') {
+    actionsHtml = `
+      <div style="display:flex; gap:10px; margin-bottom:8px; width:100%">
+        <button class="btn btn-pri" style="flex:1" onclick="decide(${item.id}, 'approve'); closeSheet();">✅ موافقة</button>
+        <button class="btn btn-red" style="flex:1" onclick="openReject(${item.id})">✕ رفض</button>
+      </div>
+    `;
+  }
+  
+  const contactButton = (user && user.role === 'imam' && item.sourceMosqueId !== user.mosqueId)
+    ? `<button class="btn btn-ghost" style="margin-bottom:8px; border: 1.5px solid var(--primary); width:100%" onclick="simulateContact('${item.sourceMosque.name}')">📞 تواصل مع المسجد</button>`
+    : '';
+
+  document.getElementById('ov').classList.add('show');
+  document.getElementById('sheet').innerHTML = `
+    <div class="grip"></div>
+    <div style="position:relative; border-radius:12px; overflow:hidden; height:180px; background:var(--primary-light); display:flex; align-items:center; justify-content:center; margin-bottom:15px; background-size:cover; background-position:center; ${item.photo ? `background-image:url('${item.photo}')` : ''}">
+      ${item.photo ? '' : `<span style="font-size:72px">${emo(item.category)}</span>`}
+      <span class="badge ${ST[item.status].c}" style="position:absolute; top:10px; right:10px; padding:4px 10px; border-radius:20px; font-weight:800; font-size:11px">${ST[item.status].t}</span>
+    </div>
+    <h2 style="font-size:18px; font-weight:800; margin-bottom:10px">${item.name}</h2>
+    
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:15px;">
+      <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-main)">
+        <span>🕌</span> <span>${item.sourceMosque.name}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted)">
+        <span>🏷️</span> <span>الفئة: ${item.category} · الكمية: ${item.quantity}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted)">
+        <span>⏱️</span> <span>تمت الإضافة: ${ago(item.createdAt)}</span>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:15px">
+      <h4 style="font-size:12px; color:var(--text-muted); margin-bottom:6px">الوصف</h4>
+      <p style="font-size:13px; line-height:1.6; color:#333">${item.description || 'لا يوجد وصف تفصيلي.'}</p>
+    </div>
+
+    <div style="margin-bottom:18px">
+      <h4 style="font-size:12px; color:var(--text-muted); margin-bottom:6px">الموقع</h4>
+      <p style="font-size:12.5px; color:#333">📍 دمشق - ${item.sourceMosque.area || 'وسط المدينة'}</p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:8px">
+      ${actionsHtml}
+      ${contactButton}
+      <button class="btn btn-ghost" style="width:100%" onclick="toggleFav(${item.id})">${favText}</button>
+    </div>
+  `;
+}
+
+function toggleFav(id) {
+  const index = favorites.indexOf(id);
+  if (index > -1) {
+    favorites.splice(index, 1);
+    toast('تمت الإزالة من المفضلة');
+  } else {
+    favorites.push(id);
+    toast('تمت الإضافة للمفضلة ✓');
+  }
+  localStorage.setItem('awqaf_favorites', JSON.stringify(favorites));
+  openDetails(id);
+  if (tab === 'favorites') render();
+}
+
+function simulateContact(mName) {
+  toast(`جاري فتح محادثة مع قيم ${mName}...`);
+  setTimeout(() => {
+    closeSheet();
+    go('more');
+  }, 1000);
+}
+
+/* المزيد */
+async function renderMore() {
+  const roleLbl={imam:'قيّم مسجد',ministry:'موظف الوزارة',manager:'إشراف',guest:'زائر'}[user ? user.role : 'guest'];
+  
+  let html = '';
+  
+  if (user && user.role !== 'guest') {
+    html += `
+      <div class="op" style="background:#fff; margin-bottom:15px; border-radius:15px; padding:15px">
+        <h3 style="font-size:14px; margin-bottom:8px">معلومات الحساب</h3>
+        <p style="font-size:13px; color:#555"><b>الاسم:</b> ${user.fullName}</p>
+        <p style="font-size:13px; color:#555"><b>رقم الجوال:</b> ${user.phone}</p>
+        <p style="font-size:13px; color:#555"><b>البريد:</b> ${user.email}</p>
+        <p style="font-size:13px; color:#555"><b>الدور:</b> ${roleLbl}</p>
+        ${user.mosque ? `<p style="font-size:13px; color:#555"><b>المسجد:</b> ${user.mosque}</p>` : ''}
+      </div>
+    `;
+    
+    // If Imam, show requests here
+    if (user.role === 'imam') {
+      const {data: reqs} = await api('/api/items?scope=myrequests');
+      html += `
+        <div style="margin-bottom:15px">
+          <h3 style="font-size:14px; font-weight:800; margin-bottom:10px">طلباتي من المساجد الأخرى (${reqs.length})</h3>
+          ${reqs.length ? reqs.map(reqCard).join('') : emptyBox('📝', 'لا توجد طلبات جارية', '')}
+        </div>
+      `;
+    }
+  } else {
+    html += `
+      <div class="op" style="background:#fff; margin-bottom:15px; border-radius:15px; padding:15px; text-align:center">
+        <h3 style="font-size:14px; margin-bottom:8px">أنت تتصفح كزائر</h3>
+        <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px">سجل دخولك لتتمكن من تقديم طلبات نقل المساجد وتصوير الأغراض الفائضة.</p>
+        <button class="btn btn-pri" style="width: 100%" onclick="logout()">تسجيل الدخول</button>
+      </div>
+    `;
+  }
+  
+  if (!user || user.role === 'imam' || user.role === 'guest') {
+    const msgs = [
+      { name: 'الشيخ أحمد (جامع الإيمان)', msg: 'السلام عليكم الشيخ محمود، بخصوص السجاد الفائض هل هو بحالة جيدة ونظيف؟', time: 'منذ ساعة' },
+      { name: 'الشيخ محمود (الجامع الأموي)', msg: 'وعليكم السلام، نعم مكيف ممتاز وسجاد مصلّى نظيف ومغسول وجاهز للتسليم.', time: 'منذ ساعة' }
+    ];
+    html += `
+      <div style="margin-bottom:15px">
+        <h3 style="font-size:14px; font-weight:800; margin-bottom:10px">المحادثات والرسائل</h3>
+        ${msgs.map(m => `
+          <div class="op">
+            <div class="top">
+              <div class="ic" style="font-size:18px">💬</div>
+              <div class="ti" style="flex:1">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                  <h3 style="font-size:12.5px">${m.name}</h3>
+                  <span style="font-size:10.5px; color:var(--text-muted)">${m.time}</span>
+                </div>
+                <p style="font-size:11.5px; color:#52635c; margin-top:4px">${m.msg}</p>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  
+  html += `
+    <div class="op" style="background:#fff; margin-bottom:15px; border-radius:15px; padding:15px">
+      <h3 style="font-size:14px; margin-bottom:8px">حول التطبيق</h3>
+      <p style="font-size:12px; color:var(--text-muted); line-height:1.6">تطبيق أوقاف دمشق لتبادل مستلزمات المساجد الفائضة يهدف لتعزيز الكفاءة وتدوير الأصول الوقفية بين بيوت الله بسهولة ويسر وبموافقة مركزية من الوزارة.</p>
+    </div>
+  `;
+  
+  if (user && user.role !== 'guest') {
+    html += `<button class="btn btn-red" style="width:100%" onclick="logout()">تسجيل الخروج</button>`;
+  }
+  
+  screen().innerHTML = `<div class="sec-h"><h2>المزيد</h2></div>` + html;
+}
+
+/* إدارة الحسابات للمدير والموظفين */
+async function accountsScreen() {
+  const {data} = await api('/api/users');
+  
+  let buttons = `<div style="display:flex; gap:10px; margin-bottom:15px;">
+    <button class="btn btn-pri" style="flex:1; font-size: 12px" onclick="openAddAccount('imam')">🕌 إضافة قيم مسجد</button>`;
+  if (user.role === 'manager') {
+    buttons += `<button class="btn btn-ghost" style="flex:1; font-size: 12px" onclick="openAddAccount('ministry')">🏢 إضافة موظف وزارة</button>`;
+  }
+  buttons += `</div>`;
+  
+  const roleBadge = r => {
+    if (r === 'imam') return '<span class="pill" style="background:var(--primary-light); color:var(--primary-dark)">قيم مسجد</span>';
+    if (r === 'ministry') return '<span class="pill" style="background:var(--amber-l); color:var(--amber)">موظف وزارة</span>';
+    return '<span class="pill" style="background:var(--gold-light); color:var(--gold)">مدير عام</span>';
+  };
+  
+  const userListHtml = data.map(u => `
+    <div class="op">
+      <div class="top" style="align-items: flex-start">
+        <div class="ic" style="font-size:18px">${u.role === 'imam' ? '🕌' : u.role === 'ministry' ? '🏢' : '👑'}</div>
+        <div class="ti" style="flex:1">
+          <h3>${u.fullName}</h3>
+          <div class="flow" style="margin-top:2px">
+            <span>📞 ${u.phone}</span> · <span style="font-size:11px">${u.email}</span>
+          </div>
+          ${u.mosqueName ? `<div class="flow" style="margin-top:4px; color:var(--primary-dark)"><b>المسجد:</b> ${u.mosqueName}</div>` : ''}
+        </div>
+        <div style="margin-inline-start:auto">${roleBadge(u.role)}</div>
+      </div>
+    </div>
+  `).join('');
+  
+  screen().innerHTML = `<div class="sec-h"><h2>إدارة المستخدمين والحسابات</h2></div>` + buttons + (userListHtml || emptyBox('👥', 'لا توجد حسابات مسجلة', ''));
+}
+
+async function openAddAccount(role) {
+  const {data: mosques} = await api('/api/mosques');
+  document.getElementById('ov').classList.add('show');
+  
+  let mosqueFieldHtml = '';
+  if (role === 'imam') {
+    mosqueFieldHtml = `
+      <div class="field">
+        <label>ربط بالمسجد</label>
+        <select id="accMosqueId" onchange="toggleNewMosque(this.value)">
+          <option value="">-- اختر من المساجد المسجلة --</option>
+          ${mosques.map(m => `<option value="${m.id}">${m.name} (${m.area})</option>`).join('')}
+          <option value="new">+ إضافة مسجد جديد غير مدرج...</option>
+        </select>
+      </div>
+      <div id="newMosqueFields" class="hide" style="border: 1px dashed var(--border-color); padding: 12px; border-radius: 10px; margin-bottom: 12px; background: #fafaf9;">
+        <h4 style="font-size:12px; margin-bottom:8px; color:var(--primary)">بيانات المسجد الجديد</h4>
+        <div class="field"><label>اسم المسجد الجديد</label><input id="newMName" placeholder="مثال: جامع الحسن"></div>
+        <div class="field"><label>منطقة المسجد / الحي</label><input id="newMArea" placeholder="مثال: الميدان"></div>
+      </div>
+    `;
+  }
+  
+  document.getElementById('sheet').innerHTML = `
+    <div class="grip"></div>
+    <h2>إضافة حساب ${role === 'imam' ? 'قيم مسجد' : 'موظف وزارة'} جديد</h2>
+    <p class="lead">قم بتسجيل بيانات الحساب الجديد ليتمكن من الدخول الفوري عبر رقم جواله أو بريده.</p>
+    
+    <div class="field"><label>الاسم الكامل</label><input id="accName" placeholder="مثال: الشيخ عبد الرحمن"></div>
+    <div class="field"><label>رقم الجوال</label><input id="accPhone" placeholder="مثال: 0911000005"></div>
+    <div class="field"><label>البريد الإلكتروني</label><input id="accEmail" type="email" placeholder="example@awqaf-damas.gov.sy"></div>
+    
+    ${mosqueFieldHtml}
+    
+    <div class="act">
+      <button class="btn btn-grey" onclick="closeSheet()">إلغاء</button>
+      <button class="btn btn-pri" onclick="saveAccount('${role}')">إنشاء الحساب</button>
+    </div>
+  `;
+}
+
+function toggleNewMosque(val) {
+  const fields = document.getElementById('newMosqueFields');
+  if (val === 'new') {
+    fields.classList.remove('hide');
+  } else {
+    fields.classList.add('hide');
+  }
+}
+
+async function saveAccount(role) {
+  const fullName = document.getElementById('accName').value.trim();
+  const phone = document.getElementById('accPhone').value.trim();
+  const email = document.getElementById('accEmail').value.trim();
+  let mosqueId = '';
+  let newMosque = null;
+  
+  if (role === 'imam') {
+    const mSelect = document.getElementById('accMosqueId').value;
+    if (mSelect === 'new') {
+      const mName = document.getElementById('newMName').value.trim();
+      const mArea = document.getElementById('newMArea').value.trim();
+      if (!mName || !mArea) return toast('يرجى تعبئة بيانات المسجد الجديد');
+      newMosque = { name: mName, area: mArea };
+    } else if (mSelect) {
+      mosqueId = Number(mSelect);
+    } else {
+      return toast('يرجى اختيار مسجد أو إضافة مسجد جديد');
+    }
+  }
+  
+  if (!fullName || !phone || !email) return toast('يرجى ملء جميع الحقول المطلوبة');
+  
+  try {
+    await api('/api/users', {
+      method: 'POST',
+      body: JSON.stringify({ fullName, phone, email, role, mosqueId, newMosque })
+    });
+    closeSheet();
+    toast('تم إنشاء الحساب بنجاح ✓');
+    render();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+/* الوزارة */
+async function ministry(){
+  if(tab==='queue'){
+    const {data}=await api('/api/requests?status=pending');
+    dbItems = data;
+    const all=await api('/api/requests');
+    const apr=all.data.filter(i=>i.status==='approved').length;
+    screen().innerHTML=`<div class="stats">
+      <div class="stat amber"><div class="n">${data.length}</div><div class="l">بانتظار قرارك</div></div>
+      <div class="stat blue"><div class="n">${apr}</div><div class="l">موافَق (قيد التسليم)</div></div></div>
+      <div class="sec-h"><h2>طلبات نقل بانتظار الموافقة</h2><span class="cnt">كل عملية تُعتمد منفردة</span></div>`
+      +(data.length?`<div class="items-grid">${data.map(compactItemCard).join('')}</div>`:emptyBox('✅','لا طلبات معلّقة','تمت معالجة الجميع'));
+  }else await logScreen();
+}
+
+/* المدير */
+async function manager(){
+  if(tab==='dash'){
+    const s=await api('/api/stats/overview');
+    const cats=Object.entries(s.categories).sort((a,b)=>b[1]-a[1]);
+    const max=Math.max(1,...cats.map(c=>c[1]));
+    screen().innerHTML=`<div class="sec-h"><h2>لوحة الإشراف</h2></div>
+      <div class="stats">
+        <div class="stat"><div class="n">${s.total}</div><div class="l">إجمالي الأغراض</div></div>
+        <div class="stat gold"><div class="n">${s.available}</div><div class="l">متاحة للتبادل</div></div>
+        <div class="stat amber"><div class="n">${s.pending}</div><div class="l">بانتظار الوزارة</div></div>
+        <div class="stat blue"><div class="n">${s.approved}</div><div class="l">قيد التسليم</div></div>
+        <div class="stat"><div class="n">${s.delivered}</div><div class="l">عمليات مكتملة</div></div>
+        <div class="stat"><div class="n">${s.mosques}</div><div class="l">مساجد مشاركة</div></div></div>
+      <div class="sec-h"><h2>الفئات الأكثر تداولاً</h2></div>
+      ${cats.map(([c,n])=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px"><span>${emo(c)} ${c}</span><span style="color:var(--text-muted)">${n}</span></div>
+        <div style="height:9px;background:var(--primary-light);border-radius:9px;overflow:hidden"><div style="height:100%;width:${n/max*100}%;background:linear-gradient(90deg,var(--primary),var(--gold))"></div></div></div>`).join('')}`;
+  }else if(tab==='mosques'){
+    const s=await api('/api/stats/overview');
+    screen().innerHTML=`<div class="sec-h"><h2>المساجد المشاركة</h2><span class="cnt">${s.mosques}</span></div>`
+      +s.perMosque.map(m=>`<div class="op"><div class="top"><div class="ic">🕌</div>
+        <div class="ti"><h3>${m.name}</h3><div class="flow">رفع <b>${m.given}</b> غراض · طلب <b>${m.received}</b></div></div></div></div>`).join('');
+  }else await logScreen();
+}
+
+async function logScreen(){
+  const {data}=await api('/api/requests');
+  dbItems = data;
+  screen().innerHTML=`<div class="sec-h"><h2>سجل العمليات</h2><span class="cnt">${data.length} عملية</span></div>`
+    +(data.length?`<div class="items-grid">${data.map(compactItemCard).join('')}</div>`:emptyBox('🗂️','لا عمليات بعد',''));
+}
+
+/* ---- إجراءات الأغراض ---- */
+async function reqItem(id){try{await api(`/api/items/${id}/request`,{method:'POST'});toast('تم إرسال طلبك — بانتظار موافقة الوزارة');render()}catch(e){toast(e.message)}}
+async function delItem(id){try{await api(`/api/items/${id}`,{method:'DELETE'});toast('تم سحب الإعلان');render()}catch(e){toast(e.message)}}
+async function deliver(id){try{await api(`/api/items/${id}/deliver`,{method:'POST'});toast('تم تسجيل التسليم');render()}catch(e){toast(e.message)}}
+async function decide(id,action){try{await api(`/api/requests/${id}/${action}`,{method:'POST',body:JSON.stringify({})});toast(action==='approve'?'✅ تمت الموافقة':'تم الرفض');render()}catch(e){toast(e.message)}}
+
+function openReject(id){
+  document.getElementById('ov').classList.add('show');
+  document.getElementById('sheet').innerHTML=`<div class="grip"></div><h2>رفض العملية</h2>
+    <p class="lead">سيُبلَّغ المسجد الطالب ويعود الغرض متاحاً للمساجد الأخرى.</p>
+    <div class="field"><label>سبب الرفض (اختياري)</label><textarea id="rej" placeholder="مثال: الغرض مخصّص لمسجد أقرب للحاجة"></textarea></div>
+    <div class="act"><button class="btn btn-grey" onclick="closeSheet()">إلغاء</button>
+    <button class="btn btn-red" onclick="doReject(${id})">تأكيد الرفض</button></div>`;
+}
+async function doReject(id){
+  const note=document.getElementById('rej').value.trim();
+  try{await api(`/api/requests/${id}/reject`,{method:'POST',body:JSON.stringify({note})});closeSheet();toast('تم رفض العملية');render()}catch(e){toast(e.message)}
+}
+
+/* رفع غرض */
+function openAdd(){
+  if (!user || user.role === 'guest') {
+    toast('يجب تسجيل الدخول كقيم مسجد لرفع الأغراض');
+    return;
+  }
+  addPhoto='';addCat=null;
+  document.getElementById('ov').classList.add('show');
+  document.getElementById('sheet').innerHTML=`<div class="grip"></div><h2>رفع غرض فائض</h2>
+    <p class="lead">صوّر الغرض الذي لا يحتاجه مسجدك. لن يُنقل لأي مسجد إلا بعد موافقة الوزارة.</p>
+    <div class="field"><div class="photobox" id="pbox" onclick="document.getElementById('file').click()">
+      <span class="em">📷</span>اضغط لالتقاط صورة الغرض</div>
+      <input type="file" id="file" accept="image/*" capture="environment" class="hide" onchange="onPhoto(event)"></div>
+    <div class="field"><label>اسم الغرض</label><input id="iname" placeholder="مثال: مكيّف، سجاد، كراسي"></div>
+    <div class="field"><label>الفئة</label><div class="chips" id="chips">${CATS.map(c=>`<span class="chip" onclick="pickCat('${c}',this)">${emo(c)} ${c}</span>`).join('')}</div></div>
+    <div class="field"><label>الكمية</label><input id="iqty" placeholder="مثال: 1 ، 25 ، 40م²"></div>
+    <div class="field"><label>وصف الحالة</label><textarea id="idesc" placeholder="حالة الغرض وسبب الاستغناء عنه"></textarea></div>
+    <div class="act"><button class="btn btn-grey" onclick="closeSheet()">إلغاء</button>
+    <button class="btn btn-pri" onclick="saveItem()">رفع الغرض</button></div>`;
+}
+function onPhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{addPhoto=rd.result;const b=document.getElementById('pbox');
+    b.style.backgroundImage=`url('${addPhoto}')`;b.innerHTML='<span style="background:rgba(8,80,58,0.75);color:#fff;padding:4px 10px;border-radius:8px;font-size:11px">تم التقاط الصورة ✓ — اضغط للتغيير</span>';};
+  rd.readAsDataURL(f);
+}
+function pickCat(c,el){addCat=c;document.querySelectorAll('#chips .chip').forEach(x=>x.classList.remove('on'));el.classList.add('on')}
+async function saveItem(){
+  const name=document.getElementById('iname').value.trim();
+  const quantity=document.getElementById('iqty').value.trim()||'1';
+  const description=document.getElementById('idesc').value.trim();
+  if(!addPhoto)return toast('يرجى التقاط صورة');
+  if(!name)return toast('أدخل اسم الغرض');
+  if(!addCat)return toast('اختر الفئة');
+  try{
+    await api('/api/items',{method:'POST',body:JSON.stringify({name,category:addCat,quantity,description,photo:addPhoto})});
+    closeSheet();tab='mine';renderNav();toast('تم رفع الغرض بنجاح ✓');render();
+  }catch(e){toast(e.message)}
+}
+
+function closeSheet(){document.getElementById('ov').classList.remove('show')}
+let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800)}
+
+/* بدء */
+if(token&&user) {
+  enterApp();
+} else {
+  showSplash();
+}
+</script>
+</body>
+</html>

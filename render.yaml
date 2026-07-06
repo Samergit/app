@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: awqaf-damas
+    env: node
+    plan: free
+    buildCommand: echo "No build needed"
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SECRET
+        generateValue: true

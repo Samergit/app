@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ar" xml:lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>03 — نموذج البيانات وآلة الحالات</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--green:#0B6E4F;--green-d:#08503A;--gold:#C9A227;--ink:#1C2B26;--muted:#6B7C75;--line:#E2E8E4;--bg:#F4F7F5;--code:#F2F5F3;}
+    *{box-sizing:border-box}
+    body{font-family:'Tajawal',sans-serif;direction:rtl;text-align:right;background:var(--bg);color:var(--ink);
+         max-width:900px;margin:0 auto;padding:32px 22px 80px;line-height:1.85;font-size:16px}
+    h1,h2,h3,h4{font-weight:800;line-height:1.35;margin:1.4em 0 .6em}
+    h1{color:var(--green-d);font-size:30px;border-bottom:3px solid var(--green);padding-bottom:.25em}
+    h2{color:var(--green);font-size:23px}
+    h3{color:var(--gold);font-size:19px}
+    p{margin:.5em 0}
+    a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+    ul,ol{padding-right:1.4em;padding-left:0}
+    li{margin:.25em 0}
+    code{font-family:Consolas,monospace;background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;direction:ltr;display:inline-block}
+    pre{background:var(--code);border-right:5px solid var(--gold);border-radius:10px;padding:14px 16px;overflow-x:auto;direction:ltr;text-align:left}
+    pre code{background:none;padding:0}
+    table{border-collapse:collapse;width:100%;margin:1em 0;font-size:15px}
+    th,td{border:1px solid var(--line);padding:9px 12px;text-align:right}
+    th{background:var(--green);color:#fff;font-weight:800}
+    tr:nth-child(even) td{background:#fff}
+    tr:nth-child(odd) td{background:#F8FBF9}
+    blockquote{background:#F7EFD6;border-right:5px solid var(--gold);margin:1em 0;padding:10px 16px;border-radius:8px;color:#5b4a12}
+    hr{border:none;border-top:1px solid var(--line);margin:1.6em 0}
+    .nav-home{display:inline-block;margin-bottom:18px;background:var(--green);color:#fff;padding:7px 14px;border-radius:9px;border-bottom:none;font-weight:700;font-size:14px}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">03 — نموذج البيانات وآلة الحالات</h1>
+</header>
+<h1 id="03--نموذج-البيانات-وآلة-الحالات">03 — نموذج البيانات وآلة الحالات</h1>
+<p>التخزين الحالي في ملف <code>data.json</code> ككائنات JSON. عند الترقية لقاعدة بيانات علائقية (MySQL/PostgreSQL) تتحوّل هذه الكائنات إلى جداول بالعلاقات المبيّنة.</p>
+<hr />
+<h2 id="الكيانات">الكيانات</h2>
+<h3 id="المساجد-mosques">المساجد <code>mosques</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>الحقل</th>
+<th>النوع</th>
+<th>الوصف</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>id</code></td>
+<td>عدد</td>
+<td>معرّف فريد</td>
+</tr>
+<tr class="even">
+<td><code>name</code></td>
+<td>نص</td>
+<td>اسم المسجد</td>
+</tr>
+<tr class="odd">
+<td><code>area</code></td>
+<td>نص</td>
+<td>المنطقة/الحي</td>
+</tr>
+</tbody>
+</table>
+<h3 id="المستخدمون-users">المستخدمون <code>users</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th>الحقل</th>
+<th>النوع</th>
+<th>الوصف</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>id</code></td>
+<td>عدد</td>
+<td>معرّف فريد</td>
+</tr>
+<tr class="even">
+<td><code>fullName</code></td>
+<td>نص</td>
+<td>الاسم الكامل</td>
+</tr>
+<tr class="odd">
+<td><code>phone</code></td>
+<td>نص</td>
+<td>رقم الجوال (للدخول) — فريد</td>
+</tr>
+<tr class="even">
+<td><code>email</code></td>
+<td>نص</td>
+<td>البريد الإلكتروني (للدخول) — فريد</td>
+</tr>
+<tr class="odd">
+<td><code>role</code></td>
+<td>نص</td>
+<td><code>imam</code> / <code>ministry</code> / <code>manager</code></td>
+</tr>
+<tr class="even">
+<td><code>mosqueId</code></td>
+<td>عدد/فارغ</td>
+<td>المسجد المرتبط (للقيّم فقط)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="الأغراض--العمليات-items">الأغراض / العمليات <code>items</code></h3>
+<blockquote>
+<p>في هذا التصميم يُمثَّل الغرض والعملية المرتبطة به في كيان واحد لتبسيط النموذج. عند التوسّع يمكن فصل «طلبات النقل» في جدول مستقل (كما في وثيقة المواصفات).</p>
+</blockquote>
+<table>
+<thead>
+<tr class="header">
+<th>الحقل</th>
+<th>النوع</th>
+<th>الوصف</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>id</code></td>
+<td>عدد</td>
+<td>معرّف فريد</td>
+</tr>
+<tr class="even">
+<td><code>name</code></td>
+<td>نص</td>
+<td>اسم الغرض</td>
+</tr>
+<tr class="odd">
+<td><code>category</code></td>
+<td>نص</td>
+<td>الفئة (تكييف، أثاث، فرش، صوتيات، إنارة، أخرى)</td>
+</tr>
+<tr class="even">
+<td><code>quantity</code></td>
+<td>نص</td>
+<td>الكمية</td>
+</tr>
+<tr class="odd">
+<td><code>description</code></td>
+<td>نص</td>
+<td>وصف الحالة</td>
+</tr>
+<tr class="even">
+<td><code>photo</code></td>
+<td>نص</td>
+<td>مسار الصورة (<code>/uploads/...</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>sourceMosqueId</code></td>
+<td>عدد</td>
+<td>المسجد المالك/المصدر</td>
+</tr>
+<tr class="even">
+<td><code>status</code></td>
+<td>نص</td>
+<td>الحالة (انظر آلة الحالات)</td>
+</tr>
+<tr class="odd">
+<td><code>requesterMosqueId</code></td>
+<td>عدد/فارغ</td>
+<td>المسجد الطالب (عند وجود عملية)</td>
+</tr>
+<tr class="even">
+<td><code>decisionNote</code></td>
+<td>نص</td>
+<td>ملاحظة الموافقة أو سبب الرفض</td>
+</tr>
+<tr class="odd">
+<td><code>createdAt</code></td>
+<td>وقت</td>
+<td>تاريخ الرفع/آخر طلب</td>
+</tr>
+<tr class="even">
+<td><code>decidedAt</code></td>
+<td>وقت/فارغ</td>
+<td>تاريخ قرار الوزارة/التسليم</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="العلاقات">العلاقات</h2>
+<pre><code>mosques 1 ───&lt; users        (المسجد له عدّة قيّمين محتملين)
+mosques 1 ───&lt; items         (sourceMosqueId — المسجد المصدر)
+mosques 1 ───&lt; items         (requesterMosqueId — المسجد الطالب)
+users   1 ───&lt; items         (قرارات الوزارة — يمكن تسجيل decided_by عند التوسّع)
+</code></pre>
+<hr />
+<h2 id="آلة-الحالات-status">آلة الحالات (status)</h2>
+<pre><code>        ┌─ قيّم آخر يطلب الغرض ─┐
+[available] ───────────────────► [pending]
+     ▲                              │
+     │ (الوزارة ترفض)               │ (الوزارة توافق)
+     └──────────────┐               ▼
+                    └──── [approved] (بانتظار التسليم)
+                                    │
+                       (المسجد المصدر يؤكّد التسليم)
+                                    ▼
+                              [delivered]  ← نهائي
+</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>الحالة</th>
+<th>المعنى</th>
+<th>من يُغيّرها</th>
+<th>عبر</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>available</code></td>
+<td>معروض ويُطلب</td>
+<td>القيّم (المصدر)</td>
+<td>رفع غرض</td>
+</tr>
+<tr class="even">
+<td><code>pending</code></td>
+<td>بانتظار موافقة الوزارة</td>
+<td>قيّم الطالب</td>
+<td><code>POST /items/:id/request</code></td>
+</tr>
+<tr class="odd">
+<td><code>approved</code></td>
+<td>اعتُمد — قيد التسليم</td>
+<td>موظف الوزارة</td>
+<td><code>POST /requests/:id/approve</code></td>
+</tr>
+<tr class="even">
+<td><code>rejected</code>*</td>
+<td>رُفض</td>
+<td>موظف الوزارة</td>
+<td><code>POST /requests/:id/reject</code></td>
+</tr>
+<tr class="odd">
+<td><code>delivered</code></td>
+<td>اكتمل النقل</td>
+<td>قيّم المصدر</td>
+<td><code>POST /items/:id/deliver</code></td>
+</tr>
+</tbody>
+</table>
+<p>* عند الرفض يعود الغرض عملياً إلى <code>available</code> ويُلغى الطالب، فيُتاح لمسجد آخر.</p>
+<hr />
+<h2 id="قواعد-السلامة-invariants">قواعد السلامة (Invariants)</h2>
+<ol>
+<li>لا ينتقل غرض إلى <code>approved</code>/<code>rejected</code> إلا بقرار من دور <code>ministry</code>.</li>
+<li>لا يُسلَّم غرض (<code>delivered</code>) إلا إذا كان <code>approved</code> ومن المسجد المصدر.</li>
+<li>لا يطلب قيّم غرضاً من مسجده هو.</li>
+<li>كل عملية تُعالَج منفردة بقرارها الخاص.</li>
+</ol>
+<hr />
+<h2 id="النسخ-الاحتياطي">النسخ الاحتياطي</h2>
+<p>البيانات كلها في <code>DATA_DIR</code> (ملف <code>data.json</code> ومجلد <code>uploads</code>). نسخها دورياً يكفي لاستعادة كامل النظام.</p>
+</body>
+</html>

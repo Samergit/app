@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل المطور: التحكم في أوضاع التشغيل وشاشة السيرفر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9f6;
+            color: #2c3e2e;
+            line-height: 1.8;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid #006643;
+        }
+        h1 {
+            color: #006643;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #b58d3d;
+            margin-top: 30px;
+            font-size: 22px;
+            border-bottom: 1px solid #f0e6d2;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #006643;
+            font-size: 18px;
+        }
+        pre {
+            background: #2d3748;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        code {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #e53e3e;
+            font-size: 15px;
+        }
+        pre code {
+            background: none;
+            color: #fff;
+            padding: 0;
+            font-size: 14px;
+        }
+        .note {
+            background: #e6f4ea;
+            border-right: 5px solid #006643;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        ul {
+            padding-right: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>دليل المطور: التحكم في أوضاع التشغيل وشاشة السيرفر</h1>
+        <p>يحتوي السيرفر الخلفي (<code>server.js</code>) على خيارين رئيسيين للتحكم في كيفية ظهور وعرض رمز التحقق (OTP) أثناء عملية التطوير والتثبيت الفعلي.</p>
+
+        <h2>1. كيف يمكن إظهار "الشاشة السوداء" للسيرفر (السجلات)؟</h2>
+        <p>لرؤية شاشة السيرفر ومتابعة العمليات مباشرة، افتح واجهة الأوامر (PowerShell أو CMD) في مجلد المشروع وشغّل السيرفر يدوياً:</p>
+        <pre><code># 1. انتقل لمجلد المشروع
+cd C:\awqaf_app
+
+# 2. شغل السيرفر
+node server.js</code></pre>
+        <p>بمجرد التشغيل، ستتحول النافذة إلى "الشاشة السوداء النشطة" وتطبع لك رسالة ترحيبية وتستعرض كل العمليات ورموز الدخول التي تتم في التطبيق.</p>
+
+        <h2>2. كيف يتم جعل الوضع هو "وضع الإنتاج الفعلي" (حجب الرمز عن المتصفح)؟</h2>
+        <p>في وضع الإنتاج الفعلي، <strong>يُمنع</strong> إرسال رمز التحقق إلى المتصفح أو تطبيق الهاتف منعاً للاختراق.</p>
+        
+        <h3>طريقة التفعيل:</h3>
+        <p>افتح ملف <strong><code>server.js</code></strong> واذهب إلى السطر رقم <strong>17</strong>:</p>
+        <ul>
+            <li><strong>لتفعيل وضع الإنتاج الفعلي:</strong> اجعل قيمة المتغير <code>true</code>:
+                <pre><code>const PROD = true;</code></pre>
+            </li>
+            <li><strong>للعودة لوضع التجربة (الملء التلقائي):</strong> اجعل قيمته <code>false</code>:
+                <pre><code>const PROD = false;</code></pre>
+            </li>
+        </ul>
+
+        <h2>3. التبديل بين وضع إظهار الرمز أو إخفائه في الشاشة السوداء</h2>
+        <p>للتحكم في ظهور الرمز داخل شاشة السيرفر السوداء أثناء طلب تسجيل الدخول، توجه إلى ملف <strong><code>server.js</code></strong> (الأسطر من <strong>144</strong> إلى <strong>146</strong>):</p>
+
+        <h3>أ. وضع إظهار الرمز على الشاشة (للتطوير اليدوي):</h3>
+        <p>إذا كنت تريد قراءة الرمز من الشاشة وكتابته بنفسك في التطبيق:</p>
+        <pre><code>// ابقِ على هذا السطر مفعلاً (بدون علامات //)
+console.log(`OTP لـ ${idf}: ${code}`);</code></pre>
+
+        <h3>ب. وضع إخفاء الرمز تماماً عن الشاشة (للأمان الكامل):</h3>
+        <p>عند إطلاق المشروع بشكل رسمي للجمهور، يجب إخفاء الرمز واستبداله برسالة أمنية عامة:</p>
+        <pre><code>// قم بوضع علامات التعليق // لإخفاء الرمز
+// console.log(`OTP لـ ${idf}: ${code}`); 
+
+// واطبع بدلاً منه رسالة إشعار فقط
+console.log(`[أمن] تم توليد رمز تحقق للحساب: ${idf}`);</code></pre>
+
+        <div class="note">
+            <strong>هام جداً:</strong> بعد إجراء أي تعديل على ملف <code>server.js</code> في الكود، يجب عليك <strong>إعادة تشغيل السيرفر</strong> لتطبيق التعديلات الجديدة.
+        </div>
+    </div>
+</body>
+</html>

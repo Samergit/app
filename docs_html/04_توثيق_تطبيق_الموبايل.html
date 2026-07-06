@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ar" xml:lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>04 — التوثيق البرمجي لتطبيق الموبايل (Flutter)</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--green:#0B6E4F;--green-d:#08503A;--gold:#C9A227;--ink:#1C2B26;--muted:#6B7C75;--line:#E2E8E4;--bg:#F4F7F5;--code:#F2F5F3;}
+    *{box-sizing:border-box}
+    body{font-family:'Tajawal',sans-serif;direction:rtl;text-align:right;background:var(--bg);color:var(--ink);
+         max-width:900px;margin:0 auto;padding:32px 22px 80px;line-height:1.85;font-size:16px}
+    h1,h2,h3,h4{font-weight:800;line-height:1.35;margin:1.4em 0 .6em}
+    h1{color:var(--green-d);font-size:30px;border-bottom:3px solid var(--green);padding-bottom:.25em}
+    h2{color:var(--green);font-size:23px}
+    h3{color:var(--gold);font-size:19px}
+    p{margin:.5em 0}
+    a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+    ul,ol{padding-right:1.4em;padding-left:0}
+    li{margin:.25em 0}
+    code{font-family:Consolas,monospace;background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;direction:ltr;display:inline-block}
+    pre{background:var(--code);border-right:5px solid var(--gold);border-radius:10px;padding:14px 16px;overflow-x:auto;direction:ltr;text-align:left}
+    pre code{background:none;padding:0}
+    table{border-collapse:collapse;width:100%;margin:1em 0;font-size:15px}
+    th,td{border:1px solid var(--line);padding:9px 12px;text-align:right}
+    th{background:var(--green);color:#fff;font-weight:800}
+    tr:nth-child(even) td{background:#fff}
+    tr:nth-child(odd) td{background:#F8FBF9}
+    blockquote{background:#F7EFD6;border-right:5px solid var(--gold);margin:1em 0;padding:10px 16px;border-radius:8px;color:#5b4a12}
+    hr{border:none;border-top:1px solid var(--line);margin:1.6em 0}
+    .nav-home{display:inline-block;margin-bottom:18px;background:var(--green);color:#fff;padding:7px 14px;border-radius:9px;border-bottom:none;font-weight:700;font-size:14px}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">04 — التوثيق البرمجي لتطبيق الموبايل (Flutter)</h1>
+</header>
+<h1 id="04--التوثيق-البرمجي-لتطبيق-الموبايل-flutter">04 — التوثيق البرمجي لتطبيق الموبايل (Flutter)</h1>
+<p>مشروع Flutter واحد يولّد تطبيقَي <strong>أندرويد</strong> و<strong>آيفون</strong>، ويتصل بنفس سيرفر النسخة الويب عبر الـ API. المشروع في مجلد <code>mobile_flutter/</code>.</p>
+<hr />
+<h2 id="1-بنية-المشروع">1. بنية المشروع</h2>
+<pre><code>mobile_flutter/
+  pubspec.yaml          ← اسم التطبيق، الإصدار، المكتبات
+  lib/
+    main.dart           ← نقطة البداية + التطبيق + الدخول + الهيكل/التنقّل
+    api.dart            ← الاتصال بالـ API + النماذج + حفظ الجلسة
+    theme.dart          ← الألوان، الثيم، شارة الحالة، أدوات الفئات
+    imam.dart           ← شاشات قيّم المسجد + بطاقة الغرض + رفع غرض
+    ministry.dart       ← طابور موافقات الوزارة + بطاقة العملية + السجل
+    manager.dart        ← لوحة المدير + شاشة المساجد
+</code></pre>
+<h2 id="2-المكتبات-pubspecyaml">2. المكتبات (pubspec.yaml)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>المكتبة</th>
+<th>الغرض</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>http</code></td>
+<td>إرسال طلبات الـ API</td>
+</tr>
+<tr class="even">
+<td><code>shared_preferences</code></td>
+<td>حفظ رمز الدخول وبيانات المستخدم على الجهاز</td>
+</tr>
+<tr class="odd">
+<td><code>image_picker</code></td>
+<td>التقاط صورة الغرض من الكاميرا/المعرض</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-شرح-الملفات">3. شرح الملفات</h2>
+<h3 id="apidart--طبقة-الاتصال"><code>api.dart</code> — طبقة الاتصال</h3>
+<ul>
+<li><strong><code>kApiBase</code></strong>: عنوان السيرفر. غيّره حسب البيئة (محاكي أندرويد <code>10.0.2.2</code>، أو نطاق المديرية عند النشر).</li>
+<li><strong><code>AppUser</code></strong>, <strong><code>Item</code></strong>: نماذج تُبنى من JSON. <code>Item.photoUrl</code> يحوّل المسار النسبي إلى رابط كامل.</li>
+<li><strong><code>Api</code></strong> (ثابتة): تحفظ <code>token</code> و <code>user</code>، وتوفّر:
+<ul>
+<li><code>loadSession()</code> / <code>logout()</code> — تحميل/مسح الجلسة من التخزين.</li>
+<li><code>requestOtp</code> / <code>verifyOtp</code> — المصادقة.</li>
+<li><code>items(scope)</code> / <code>addItem</code> / <code>deleteItem</code> / <code>requestItem</code> / <code>deliver</code> — الأغراض.</li>
+<li><code>requests</code> / <code>approve</code> / <code>reject</code> — الموافقات.</li>
+<li><code>stats()</code> — الإحصاءات.</li>
+<li>الدالة الداخلية <code>_req</code> توحّد إرسال الطلبات وإضافة ترويسة المصادقة ومعالجة الأخطاء.</li>
+</ul></li>
+</ul>
+<h3 id="themedart--الهوية"><code>theme.dart</code> — الهوية</h3>
+<ul>
+<li><code>AppColors</code>: لوحة الألوان (أخضر/ذهبي) المطابقة للويب.</li>
+<li><code>buildTheme()</code>: ثيم Material 3.</li>
+<li><code>StatusBadge</code>: شارة ملوّنة لحالة الغرض.</li>
+<li><code>categoryEmoji</code> و <code>categories</code>: فئات الأغراض ورموزها.</li>
+</ul>
+<h3 id="maindart--التطبيق-والتنقّل"><code>main.dart</code> — التطبيق والتنقّل</h3>
+<ul>
+<li><code>main()</code>: يحمّل الجلسة المحفوظة ثم يشغّل <code>AwqafApp</code>.</li>
+<li><code>AwqafApp</code>: يضبط <code>MaterialApp</code> ويفرض اتجاه <strong>RTL</strong> على كامل التطبيق، ويعرض شاشة الدخول أو الهيكل حسب وجود جلسة.</li>
+<li><code>LoginScreen</code>: إدخال رقم الجوال → طلب OTP → إدخال الرمز → دخول. يعرض الرمز التجريبي تلقائياً.</li>
+<li><code>HomeShell</code>: يبني شريط تنقّل سفلياً <strong>حسب الدور</strong> ويعرض الشاشة المناسبة. يُظهر زر «+» لرفع غرض للقيّم في تبويب «أغراضي».</li>
+</ul>
+<h3 id="imamdart--شاشات-القيّم"><code>imam.dart</code> — شاشات القيّم</h3>
+<ul>
+<li><code>ItemCard</code>: بطاقة غرض (صورة، حالة، تفاصيل، زر إجراء).</li>
+<li><code>BrowseScreen</code>: تصفّح أغراض المساجد الأخرى مع زر «طلب».</li>
+<li><code>MyItemsScreen</code>: أغراض مسجدي مع إجراءات (سحب الإعلان / تأكيد التسليم).</li>
+<li><code>MyRequestsScreen</code>: متابعة طلباتي وحالاتها.</li>
+<li><code>AddItemScreen</code>: نموذج رفع غرض مع <strong>التقاط صورة</strong> عبر <code>image_picker</code> وتحويلها إلى Base64 وإرسالها.</li>
+</ul>
+<h3 id="ministrydart--شاشات-الوزارة"><code>ministry.dart</code> — شاشات الوزارة</h3>
+<ul>
+<li><code>OpCard</code>: بطاقة عملية (مصدر ← طالب).</li>
+<li><code>MinistryQueueScreen</code>: طابور الموافقات مع زرّي <strong>موافقة/رفض</strong>؛ الرفض يفتح ورقة سفلية لإدخال السبب.</li>
+<li><code>OperationsLogScreen</code>: سجل كل العمليات (يُستخدم للوزارة والمدير).</li>
+</ul>
+<h3 id="managerdart--شاشات-المدير"><code>manager.dart</code> — شاشات المدير</h3>
+<ul>
+<li><code>ManagerDashboard</code>: بطاقات إحصائية + مخطّط الفئات تداولاً.</li>
+<li><code>MosquesScreen</code>: قائمة المساجد المشاركة مع عدد ما رفعته وطلبته.</li>
+</ul>
+<h2 id="4-البناء-والتشغيل">4. البناء والتشغيل</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="bu">cd</span> mobile_flutter</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ex">flutter</span> pub get</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="ex">flutter</span> create .          # لإنشاء مجلدي android/ و ios/ إن لم يوجدا</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="ex">flutter</span> run               # تشغيل على جهاز/محاكي</span></code></pre></div>
+<h3 id="أذونات-الكاميرا">أذونات الكاميرا</h3>
+<ul>
+<li>أندرويد: أضِف <code>CAMERA</code> في <code>AndroidManifest.xml</code>.</li>
+<li>آيفون: أضِف <code>NSCameraUsageDescription</code> في <code>Info.plist</code>.</li>
+</ul>
+<p>(التفاصيل في <code>mobile_flutter/README.md</code>.)</p>
+<h3 id="الإصدارات-النهائية">الإصدارات النهائية</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">flutter</span> build appbundle --release   # أندرويد → Google Play</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">flutter</span> build ios --release         # آيفون (على Mac) → <span class="ex">App</span> Store عبر Xcode</span></code></pre></div>
+<h2 id="5-ملاحظات">5. ملاحظات</h2>
+<ul>
+<li>التطبيق <strong>عديم الحالة على الخادم</strong>: يعتمد كلياً على الـ API، فأي تحديث في منطق العمل يكفي تطبيقه في الخادم.</li>
+<li>منطق الصلاحيات الحقيقي مفروض في الخادم؛ التطبيق يعرض الواجهات المناسبة للدور فقط لتجربة أفضل.</li>
+<li>لإضافة الإشعارات الفورية لاحقاً: تُدمج <code>firebase_messaging</code> ويُضاف مسار تسجيل الجهاز في الخادم.</li>
+</ul>
+</body>
+</html>

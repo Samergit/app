@@ -1,0 +1,25 @@
+# خدمة systemd لتشغيل التطبيق تلقائياً على خادم لينكس (VPS / سيرفر الوزارة)
+# انسخه إلى: /etc/systemd/system/awqaf.service ثم:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now awqaf
+# مراقبة السجل:  journalctl -u awqaf -f
+
+[Unit]
+Description=Awqaf Dimashq - Mosque Items Exchange
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/awqaf_app
+ExecStart=/usr/bin/node /opt/awqaf_app/server.js
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=DATA_DIR=/var/lib/awqaf
+# غيّر هذه القيمة إلى سرّ قوي وفريد:
+Environment=SECRET=ضع_سرّاً_قوياً_هنا
+
+[Install]
+WantedBy=multi-user.target

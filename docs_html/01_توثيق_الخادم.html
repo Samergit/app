@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ar" xml:lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>01 — التوثيق البرمجي للخادم (server.js)</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--green:#0B6E4F;--green-d:#08503A;--gold:#C9A227;--ink:#1C2B26;--muted:#6B7C75;--line:#E2E8E4;--bg:#F4F7F5;--code:#F2F5F3;}
+    *{box-sizing:border-box}
+    body{font-family:'Tajawal',sans-serif;direction:rtl;text-align:right;background:var(--bg);color:var(--ink);
+         max-width:900px;margin:0 auto;padding:32px 22px 80px;line-height:1.85;font-size:16px}
+    h1,h2,h3,h4{font-weight:800;line-height:1.35;margin:1.4em 0 .6em}
+    h1{color:var(--green-d);font-size:30px;border-bottom:3px solid var(--green);padding-bottom:.25em}
+    h2{color:var(--green);font-size:23px}
+    h3{color:var(--gold);font-size:19px}
+    p{margin:.5em 0}
+    a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+    ul,ol{padding-right:1.4em;padding-left:0}
+    li{margin:.25em 0}
+    code{font-family:Consolas,monospace;background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;direction:ltr;display:inline-block}
+    pre{background:var(--code);border-right:5px solid var(--gold);border-radius:10px;padding:14px 16px;overflow-x:auto;direction:ltr;text-align:left}
+    pre code{background:none;padding:0}
+    table{border-collapse:collapse;width:100%;margin:1em 0;font-size:15px}
+    th,td{border:1px solid var(--line);padding:9px 12px;text-align:right}
+    th{background:var(--green);color:#fff;font-weight:800}
+    tr:nth-child(even) td{background:#fff}
+    tr:nth-child(odd) td{background:#F8FBF9}
+    blockquote{background:#F7EFD6;border-right:5px solid var(--gold);margin:1em 0;padding:10px 16px;border-radius:8px;color:#5b4a12}
+    hr{border:none;border-top:1px solid var(--line);margin:1.6em 0}
+    .nav-home{display:inline-block;margin-bottom:18px;background:var(--green);color:#fff;padding:7px 14px;border-radius:9px;border-bottom:none;font-weight:700;font-size:14px}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">01 — التوثيق البرمجي للخادم (server.js)</h1>
+</header>
+<h1 id="01--التوثيق-البرمجي-للخادم-serverjs">01 — التوثيق البرمجي للخادم (server.js)</h1>
+<p>سيرفر خلفي مبني بـ <strong>Node.js المدمج فقط</strong> (وحدات <code>http</code>, <code>fs</code>, <code>path</code>, <code>crypto</code>) — بلا أي مكتبات خارجية، فلا حاجة لـ <code>npm install</code>. الملف كامل في <code>server.js</code> (~300 سطر).</p>
+<hr />
+<h2 id="1-الإعدادات-العامة-متغيرات-البيئة">1. الإعدادات العامة (متغيرات البيئة)</h2>
+<p>أعلى الملف تُقرأ الإعدادات من متغيرات البيئة مع قيم افتراضية:</p>
+<table>
+<thead>
+<tr class="header">
+<th>المتغير</th>
+<th>الافتراضي</th>
+<th>الوظيفة</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>PORT</code></td>
+<td><code>3000</code></td>
+<td>منفذ الاستماع</td>
+</tr>
+<tr class="even">
+<td><code>DATA_DIR</code></td>
+<td>مجلد التطبيق</td>
+<td>مكان حفظ <code>data.json</code> ومجلد <code>uploads</code> (يُوجَّه لقرص دائم عند النشر)</td>
+</tr>
+<tr class="odd">
+<td><code>NODE_ENV</code></td>
+<td>غير محدّد</td>
+<td>عند <code>production</code> يُفعَّل وضع الإنتاج</td>
+</tr>
+<tr class="even">
+<td><code>SECRET</code></td>
+<td>سرّ تجريبي</td>
+<td>مفتاح توقيع رموز الدخول — <strong>يجب تغييره في الإنتاج</strong></td>
+</tr>
+</tbody>
+</table>
+<p>في وضع الإنتاج، إذا بقي <code>SECRET</code> على القيمة التجريبية يُطبع تحذير.</p>
+<h2 id="2-قاعدة-البيانات-دالة-seed-و-loaddbsavedb">2. قاعدة البيانات (دالة <code>seed</code> و <code>loadDB</code>/<code>saveDB</code>)</h2>
+<ul>
+<li>التخزين في ملف <strong><code>data.json</code></strong> (JSON). عند أول تشغيل (الملف غير موجود أو فارغ) تُستدعى <code>seed()</code> لإنشاء بيانات أولية: 6 مساجد، 6 مستخدمين، 5 أغراض.</li>
+<li><code>loadDB()</code> تقرأ الملف إلى المتغير <code>db</code> في الذاكرة؛ وعند الفشل تُنشئ البيانات الأولية.</li>
+<li><code>saveDB()</code> تكتب <code>db</code> إلى القرص مع <strong>تأخير بسيط (debounce)</strong> لتجميع الكتابات المتتابعة.</li>
+</ul>
+<blockquote>
+<p>للتوسّع: يمكن استبدال هذه الطبقة بقاعدة بيانات حقيقية (MySQL/PostgreSQL) بتغيير <code>loadDB</code>/<code>saveDB</code> ودوال الوصول فقط، دون المساس بمنطق الـ API.</p>
+</blockquote>
+<h2 id="3-المصادقة-sign--verify--authuser">3. المصادقة (<code>sign</code> / <code>verify</code> / <code>authUser</code>)</h2>
+<p>الدخول يقبل <strong>البريد الإلكتروني أو رقم الجوال</strong>: الدالة <code>findUser(identifier)</code> تبحث عن المستخدم بمطابقة الحقل <code>email</code> أو <code>phone</code>، فيستطيع المستخدم الدخول بأيّهما.</p>
+<p>نظام رموز بسيط موقّع بـ <strong>HMAC-SHA256</strong>:</p>
+<ul>
+<li><code>sign(payload)</code> يُنشئ رمزاً = <code>base64url(payload) + '.' + HMAC</code>. الحمولة تحوي <code>uid</code> و <code>role</code> و <code>exp</code> (انتهاء بعد 30 يوماً).</li>
+<li><code>verify(token)</code> يتحقق من التوقيع وصلاحية الوقت، ويعيد الحمولة أو <code>null</code>.</li>
+<li><code>authUser(req)</code> يقرأ ترويسة <code>Authorization: Bearer ...</code>، يتحقق، ويعيد كائن المستخدم من قاعدة البيانات.</li>
+</ul>
+<p>رمز التحقق (OTP) يُخزّن مؤقتاً في الذاكرة (<code>otpStore</code>) ويُحذف بعد الاستخدام.</p>
+<h2 id="4-أدوات-مساعدة">4. أدوات مساعدة</h2>
+<ul>
+<li><code>send(res, code, obj)</code> — يرسل رداً JSON بترميز UTF-8.</li>
+<li><code>readBody(req)</code> — يقرأ جسم الطلب ويحوّله من JSON (بحدّ أقصى ~9MB لمنع الإساءة).</li>
+<li><code>savePhoto(dataUrl, id)</code> — يفكّ صورة Base64 من نوع <code>data:image/...</code> ويحفظها في <code>uploads/item_&lt;id&gt;.&lt;ext&gt;</code> ويعيد المسار النسبي.</li>
+<li><code>publicItem(it)</code> — يُحوّل الغرض المخزَّن إلى الشكل العام (يضيف اسمي المسجد المصدر والطالب).</li>
+</ul>
+<h2 id="5-مُوجّه-المسارات-دالة-api">5. مُوجّه المسارات (دالة <code>api</code>)</h2>
+<p>تستقبل الطلب، تفصل المسار إلى أجزاء، وتوجّه حسب المسار والطريقة (GET/POST/DELETE). تفاصيل كل نقطة في <a href="02_مرجع_API.html"><code>02_مرجع_API.md</code></a>. أهم مبادئها:</p>
+<ol>
+<li>مساري <code>auth/request-otp</code> و <code>auth/verify-otp</code> <strong>عامّان</strong> (بلا تسجيل دخول).</li>
+<li>كل ما بعدهما يستدعي <code>authUser</code>؛ وإن لم يوجد مستخدم يُعاد الخطأ 401.</li>
+<li><strong>التحقق من الدور داخل كل نقطة</strong>: مثلاً الموافقة/الرفض تتطلب <code>role === 'ministry'</code>، والرفع يتطلب <code>role === 'imam'</code>، والإحصاءات تتطلب <code>role === 'manager'</code>. أي تجاوز يُعاد بـ 403.</li>
+</ol>
+<h3 id="فرض-قاعدة-الموافقة-الأهم">فرض قاعدة الموافقة (الأهم)</h3>
+<ul>
+<li>عند طلب غرض (<code>items/:id/request</code>) تتحوّل حالته إلى <code>pending</code> ويُسجَّل المسجد الطالب.</li>
+<li>لا يمكن الانتقال إلى <code>approved</code> أو <code>rejected</code> إلا عبر <code>requests/:id/approve|reject</code> ومن دور <code>ministry</code> فقط.</li>
+<li>التسليم (<code>items/:id/deliver</code>) لا يُقبل إلا إذا كانت الحالة <code>approved</code> ومن <strong>المسجد المصدر</strong> نفسه.</li>
+</ul>
+<p>هذا يضمن أن كل عملية نقل تمرّ بموافقة الوزارة منفردةً.</p>
+<h2 id="6-الملفات-الثابتة-والأمان">6. الملفات الثابتة والأمان</h2>
+<ul>
+<li><code>serveStatic</code> يخدم ملفات <code>public/</code> (الواجهة) و <code>uploads/</code> (الصور) مع نوع MIME الصحيح.</li>
+<li><strong>حماية من تجاوز المسارات (Path Traversal):</strong> تُستخدم <code>path.basename</code> على اسم الملف المطلوب لمنع الوصول إلى ملفات خارج المجلدات المسموحة (اختُبر: محاولة التجاوز تُعاد بـ 404).</li>
+<li>ترويسات <strong>CORS</strong> مُفعّلة للسماح لتطبيق الجوال بالاتصال.</li>
+</ul>
+<h2 id="7-تشغيل-الخادم">7. تشغيل الخادم</h2>
+<p>في النهاية يُنشأ خادم <code>http</code> يستمع على <code>PORT</code> ويطبع رابط الوصول. كل طلب يمرّ عبر معالج واحد: يضبط CORS، يردّ على <code>OPTIONS</code>، ثم يوجّه إلى <code>api</code> أو خدمة الملفات الثابتة، مع التقاط الأخطاء وإرجاع 500 عند الحاجة.</p>
+<h2 id="8-نقاط-للإنتاج">8. نقاط للإنتاج</h2>
+<ul>
+<li>ربط بوابة SMS مكان طباعة OTP في <code>request-otp</code> (معلّم بتعليق في الكود).</li>
+<li>ضبط <code>SECRET</code> و <code>DATA_DIR</code> عبر متغيرات البيئة.</li>
+<li>وضع وسيط عكسي (Nginx) أمام الخادم لإضافة HTTPS — راجع <code>../دليل-النشر.md</code>.</li>
+</ul>
+</body>
+</html>

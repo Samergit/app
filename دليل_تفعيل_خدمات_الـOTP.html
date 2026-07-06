@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل تفعيل خدمات الـ OTP (SMS والبريد الإلكتروني)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9f6;
+            color: #2c3e2e;
+            line-height: 1.8;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid #006643;
+        }
+        h1 {
+            color: #006643;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #b58d3d;
+            margin-top: 30px;
+            font-size: 22px;
+            border-bottom: 1px solid #f0e6d2;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #006643;
+            font-size: 18px;
+        }
+        pre {
+            background: #2d3748;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        code {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #e53e3e;
+            font-size: 14px;
+        }
+        pre code {
+            background: none;
+            color: #fff;
+            padding: 0;
+        }
+        .step {
+            background: #fafafa;
+            border-right: 4px solid #b58d3d;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>دليل تفعيل خدمات الـ OTP (SMS والبريد الإلكتروني)</h1>
+        <p>يوضح هذا المستند دليلاً تفصيلياً للمطورين لشرح كيفية تفعيل خدمة رموز التحقق (OTP) حقيقةً عبر الرسائل النصية القصيرة (SMS) والبريد الإلكتروني (Email) في خادم المشروع.</p>
+
+        <h2>أولاً: دليل الاشتراك في خدمات الـ SMS OTP (الرسائل النصية القصيرة)</h2>
+        <p>لكي تصل رموز التحقق إلى جوالات قيّمي المساجد حقيقةً، يجب ربط السيرفر بمزوّد خدمة رسائل (SMS Gateway).</p>
+
+        <h3>1. المتطلبات والاشتراك:</h3>
+        <p>يتطلب الربط بالبوابات المحلية (مثل الشركات السورية كـ Syriatel/Al-Amin) أو العالمية (مثل Twilio/Vonage) ما يلي:</p>
+        <ul>
+            <li><strong>حساب مطور (Developer Account):</strong> فتح حساب في موقع الشركة المزودة للخدمة.</li>
+            <li><strong>رصيد رسائل (SMS Credits):</strong> شحن الحساب بمبلغ مالي أو حزمة رسائل لدعم الإرسال.</li>
+            <li><strong>معرف المرسل (Sender ID):</strong> الاسم التجاري المعتمد الذي ستصل الرسائل باسمه للقيمين (مثل: <code>AwqafDamas</code>).</li>
+            <li><strong>مفاتيح الوصول (API Keys):</strong> رموز السرية التي يمنحها الموقع للسيرفر ليسمح له بالإرسال البرمجي.</li>
+        </ul>
+
+        <h3>2. طريقة الدمج في الكود (<code>server.js</code>):</h3>
+        <p>عند طلب الرمز، يتم إرسال طلب HTTP POST لمزود الخدمة. كمثال للربط مع بوابة رسائل:</p>
+        <pre><code>const https = require('https');
+
+function sendSMS(phoneNumber, code) {
+  const message = `رمز التحقق الخاص بك لتطبيق الأوقاف هو: ${code}`;
+  
+  const data = JSON.stringify({
+    apiKey: 'YOUR_SMS_API_KEY',
+    sender: 'AwqafDamas',
+    to: phoneNumber,
+    message: message
+  });
+
+  const options = {
+    hostname: 'api.smsprovider.com', // رابط API الخاص بالشركة
+    path: '/v1/send',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': data.length
+    }
+  };
+
+  const req = https.request(options, (res) => {
+    res.on('data', (d) => {
+      console.log(`[رسائل] رد بوابة الـ SMS: ${d.toString()}`);
+    });
+  });
+
+  req.on('error', (error) => {
+    console.error(`[أمن] فشل إرسال رسالة الـ SMS:`, error);
+  });
+
+  req.write(data);
+  req.end();
+}</code></pre>
+
+        <h2>ثانياً: دليل تفعيل خدمة الـ OTP عبر البريد الإلكتروني (Email OTP)</h2>
+        <p>يمكن للسيرفر إرسال رمز التحقق كرسالة بريد إلكتروني إلى البريد الرسمي للقيم (مثل: <code>ahmad@awqaf-damas.gov.sy</code>).</p>
+
+        <h3>1. المتطلبات:</h3>
+        <ul>
+            <li><strong>حساب بريد إلكتروني رسمي (SMTP Server):</strong> مثل حساب الوزارة الرسمي، أو حساب Gmail مخصص للتطبيق.</li>
+            <li><strong>إعدادات منفذ الإرسال (Host / Port / Secure):</strong> عنوان خادم البريد ومنفذ الاتصال (مثل 465 للـ SSL).</li>
+        </ul>
+
+        <h3>2. كيفية إضافة الكود في السيرفر (<code>server.js</code>):</h3>
+        <p>نستخدم مكتبة <code>nodemailer</code> المصممة لإرسال رسائل البريد الإلكتروني في Node.js.</p>
+
+        <div class="step">
+            <strong>الخطوة 1: تثبيت المكتبة في مجلد السيرفر:</strong>
+            <pre><code>npm install nodemailer</code></pre>
+        </div>
+
+        <div class="step">
+            <strong>الخطوة 2: إضافة كود الإرسال في ملف <code>server.js</code>:</strong>
+            <pre><code>const nodemailer = require('nodemailer');
+
+// 1. إعداد ناقل البريد الإلكتروني (Transporter)
+const mailTransporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',         // أو خادم بريد الوزارة
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'your-app-email@gmail.com', // بريد الإرسال
+    pass: 'your-app-password'         // كلمة مرور التطبيقات للحساب
+  }
+});
+
+// 2. دالة إرسال بريد الـ OTP
+function sendEmailOTP(targetEmail, code) {
+  const mailOptions = {
+    from: '"مديرية أوقاف دمشق" &lt;your-app-email@gmail.com&gt;',
+    to: targetEmail,
+    subject: 'رمز التحقق — تطبيق تبادل مستلزمات المساجد',
+    html: `
+      &lt;div style="direction: rtl; text-align: right; font-family: Tahoma, sans-serif; padding: 20px; border: 1px solid #ccc; border-radius: 5px;"&gt;
+        &lt;h2 style="color: #006643;"&gt;مديرية أوقاف دمشق&lt;/h2&gt;
+        &lt;p&gt;مرحباً بك، لقد طلبت رمز الدخول لتطبيق تبادل مستلزمات المساجد.&lt;/p&gt;
+        &lt;div style="font-size: 24px; font-weight: bold; background-color: #f5f5f5; padding: 10px; text-align: center; border-radius: 5px; letter-spacing: 5px; color: #006643;"&gt;
+          \${code}
+        &lt;/div&gt;
+        &lt;p style="color: #666; font-size: 12px; margin-top: 20px;"&gt;هذا الرمز صالح للاستخدام لمرة واحدة فقط وصلاحيته محدودة.&lt;/p&gt;
+      &lt;/div&gt;
+    `
+  };
+
+  mailTransporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return console.error('[بريد] فشل إرسال رمز التحقق:', error);
+    }
+    console.log('[بريد] تم إرسال الرمز بنجاح. معرف الرسالة: %s', info.messageId);
+  });
+}</code></pre>
+        </div>
+
+        <div class="step">
+            <strong>الخطوة 3: استدعاء الدالة داخل مسار المصادقة في السيرفر (<code>server.js</code>):</strong>
+            <p>في السيرفر بدلاً من طباعة الرمز، نقوم بتوجيه الإرسال حسب المدخلات:</p>
+            <pre><code>// استدعاء الإرسال الفعلي في وضع الإنتاج
+if (PROD) {
+  if (user.email) {
+    sendEmailOTP(user.email, code); // إرسال عبر البريد الإلكتروني
+  }
+  if (user.phone) {
+    sendSMS(user.phone, code);      // إرسال عبر رسائل الـ SMS
+  }
+}</code></pre>
+        </div>
+    </div>
+</body>
+</html>

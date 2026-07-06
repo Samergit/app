@@ -1,0 +1,12 @@
+{
+  "name": "awqaf-app",
+  "version": "1.0.0",
+  "description": "تطبيق تبادل مستلزمات المساجد - مديرية أوقاف دمشق",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

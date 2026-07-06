@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0B6E4F"/>
+  <g fill="#C9A227">
+    <ellipse cx="300" cy="150" rx="13" ry="62" transform="rotate(52 300 150)"/>
+    <ellipse cx="324" cy="170" rx="13" ry="56" transform="rotate(70 324 170)"/>
+    <ellipse cx="338" cy="194" rx="12" ry="50" transform="rotate(84 338 194)"/>
+    <ellipse cx="342" cy="218" rx="11" ry="42" transform="rotate(96 342 218)"/>
+    <ellipse cx="212" cy="150" rx="13" ry="62" transform="rotate(-52 212 150)"/>
+    <ellipse cx="188" cy="170" rx="13" ry="56" transform="rotate(-70 188 170)"/>
+    <ellipse cx="174" cy="194" rx="12" ry="50" transform="rotate(-84 174 194)"/>
+    <ellipse cx="170" cy="218" rx="11" ry="42" transform="rotate(-96 170 218)"/>
+    <circle cx="256" cy="112" r="27"/>
+    <path d="M256 137 l-11 19 h22 z"/>
+    <path d="M256 146 q-30 12 -30 76 q0 70 30 118 q30 -48 30 -118 q0 -64 -30 -76 z"/>
+    <ellipse cx="256" cy="388" rx="13" ry="54"/>
+    <ellipse cx="244" cy="384" rx="10" ry="46" transform="rotate(-12 244 384)"/>
+    <ellipse cx="268" cy="384" rx="10" ry="46" transform="rotate(12 268 384)"/>
+  </g>
+  <g fill="#0B6E4F">
+    <path transform="translate(236,248) scale(0.6)" d="M0 -16 L4.7 -4.9 16.6 -4.9 7 2.6 10.6 14.5 0 7.4 -10.6 14.5 -7 2.6 -16.6 -4.9 -4.7 -4.9 Z"/>
+    <path transform="translate(256,248) scale(0.6)" d="M0 -16 L4.7 -4.9 16.6 -4.9 7 2.6 10.6 14.5 0 7.4 -10.6 14.5 -7 2.6 -16.6 -4.9 -4.7 -4.9 Z"/>
+    <path transform="translate(276,248) scale(0.6)" d="M0 -16 L4.7 -4.9 16.6 -4.9 7 2.6 10.6 14.5 0 7.4 -10.6 14.5 -7 2.6 -16.6 -4.9 -4.7 -4.9 Z"/>
+  </g>
+</svg>

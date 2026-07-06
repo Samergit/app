@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شجرة تعلّق ملفات المشروع</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9f6;
+            color: #2c3e2e;
+            line-height: 1.8;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid #006643;
+        }
+        h1 {
+            color: #006643;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #b58d3d;
+            margin-top: 30px;
+            font-size: 22px;
+            border-bottom: 1px solid #f0e6d2;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 15px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            text-align: right;
+        }
+        th {
+            background: #f7f9f6;
+            color: #006643;
+            font-weight: 700;
+        }
+        tr:nth-child(even) {
+            background-color: #fcfdfc;
+        }
+        .diagram-container {
+            background: #fdfdfd;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>شجرة تعلّق ملفات المشروع</h1>
+        <p>يوضح هذا المستند شجرة العلاقات والاعتماديات الكاملة بين ملفات المشروع، متضمناً الملفات الموثقة وغير الموثقة سابقاً.</p>
+
+        <h2>أولاً: هيكلية الملفات المترابطة</h2>
+        <p>يتكون المشروع من ثلاثة أجزاء رئيسية تعمل معاً بانسجام تام:</p>
+        <ul>
+            <li><strong>خادم الباك أند (Node.js):</strong> يعالج قاعدة البيانات <code>data.json</code> ومجلد المرفوعات <code>uploads</code> ويقوم بتقديم واجهة الويب.</li>
+            <li><strong>واجهة الويب (PWA):</strong> والموجودة داخل مجلد <code>public</code>.</li>
+            <li><strong>تطبيق الهاتف المحمول (Flutter):</strong> والموجود في مجلد <code>mobile_flutter</code> ويتصل مباشرة بـ APIs السيرفر.</li>
+        </ul>
+
+        <h2>ثانياً: جدول تفصيلي لوظيفة واعتمادية كل ملف</h2>
+
+        <h3>أ. خادم الباك أند والويب (الخادم الرئيسي)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>اسم الملف</th>
+                    <th>الوصف والوظيفة</th>
+                    <th>يعتمد على</th>
+                    <th>يؤثر على</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>server.js</strong></td>
+                    <td>الخادم الأساسي للـ API وتقديم ملفات الويب الثابتة.</td>
+                    <td>data.json, public/index.html</td>
+                    <td>كافة الواجهات وتطبيق الهاتف</td>
+                </tr>
+                <tr>
+                    <td><strong>data.json</strong></td>
+                    <td>ملف قاعدة البيانات المحلية للمشروع (بصيغة JSON).</td>
+                    <td>-</td>
+                    <td>server.js</td>
+                </tr>
+                <tr>
+                    <td><strong>Dockerfile</strong></td>
+                    <td>إعدادات بناء حاوية Docker لتشغيل السيرفر في أي خادم.</td>
+                    <td>server.js</td>
+                    <td>آلية النشر والاستضافة</td>
+                </tr>
+                <tr>
+                    <td><strong>public/index.html</strong></td>
+                    <td>واجهة الويب الموحدة وتضم كود HTML/CSS/JS مدمجاً.</td>
+                    <td>public/manifest.json, public/icon.svg</td>
+                    <td>متصفح المستخدم النهائي</td>
+                </tr>
+                <tr>
+                    <td><strong>public/manifest.json</strong></td>
+                    <td>ملف تهيئة PWA ليقبل التثبيت كاختصار على الهواتف.</td>
+                    <td>public/icon.svg</td>
+                    <td>public/index.html</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>ب. تطبيق الهاتف المحمول (Flutter)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>اسم الملف</th>
+                    <th>الوصف والوظيفة</th>
+                    <th>يعتمد على</th>
+                    <th>يؤثر على</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>lib/main.dart</strong></td>
+                    <td>نقطة انطلاق تطبيق الهاتف، يعالج شاشة تسجيل الدخول والتنقل.</td>
+                    <td>lib/api.dart, lib/theme.dart, شاشات الأدوار</td>
+                    <td>هيكل وسلوك تطبيق الهاتف</td>
+                </tr>
+                <tr>
+                    <td><strong>lib/api.dart</strong></td>
+                    <td>يحوي رابط السيرفر المشترك ونماذج البيانات والطلبات.</td>
+                    <td>السيرفر الخارجي عبر الإنترنت</td>
+                    <td>كافة واجهات تطبيق الهاتف</td>
+                </tr>
+                <tr>
+                    <td><strong>lib/theme.dart</strong></td>
+                    <td>يحدد الألوان والشارات وهوية التطبيق البصرية.</td>
+                    <td>-</td>
+                    <td>شاشات التطبيق بالكامل</td>
+                </tr>
+                <tr>
+                    <td><strong>lib/imam.dart</strong></td>
+                    <td>شاشات وإجراءات قيّم المسجد (تصفح، رفع غرض، تأكيد).</td>
+                    <td>lib/api.dart</td>
+                    <td>واجهة قيّم المسجد</td>
+                </tr>
+                <tr>
+                    <td><strong>lib/ministry.dart</strong></td>
+                    <td>واجهات موظف الوزارة لاعتماد أو رفض طلبات النقل.</td>
+                    <td>lib/api.dart</td>
+                    <td>إدارة طلبات المساجد</td>
+                </tr>
+                <tr>
+                    <td><strong>lib/manager.dart</strong></td>
+                    <td>شاشات المدير العام لمراقبة النشاط والإحصاءات والمساجد.</td>
+                    <td>lib/api.dart</td>
+                    <td>لوحة التحكم للمدير</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
