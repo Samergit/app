@@ -19,6 +19,26 @@ const SECRET = process.env.SECRET || 'awqaf-dimashq-demo-secret-change-in-produc
 if (PROD && SECRET.includes('demo-secret'))
   console.warn('[تحذير] عيّن متغير البيئة SECRET بقيمة سرية قوية في الإنتاج.');
 
+// ================================================================
+// الحسابات التجريبية: تستخدم رمزاً ثابتاً (000000) دائماً
+// حتى في وضع الإنتاج — أضف أو احذف منها حسب الحاجة
+// ================================================================
+const DEMO_ACCOUNTS = new Set([
+  'ahmad@awqaf-damas.gov.sy',
+  '0911000001',
+  'mahmoud@awqaf-damas.gov.sy',
+  '0911000002',
+  'khaled@awqaf-damas.gov.sy',
+  '0911000003',
+  'omar@awqaf-damas.gov.sy',
+  '0911000004',
+  'ministry@awqaf-damas.gov.sy',
+  '0922000000',
+  'manager@awqaf-damas.gov.sy',
+  '0933000000',
+]);
+const DEMO_CODE = '000000'; // الرمز الثابت لجميع الحسابات التجريبية
+
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 /* ---------- قاعدة البيانات (ملف JSON) ---------- */
@@ -140,12 +160,20 @@ async function api(req, res, url) {
     const idf = String(body.identifier || body.email || body.phone || '').trim().toLowerCase();
     const user = findUser(idf);
     if (!user) return send(res, 404, { error: 'البريد أو رقم الجوال غير مسجّل لدى المديرية' });
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+
+    const isDemo = DEMO_ACCOUNTS.has(idf);
+    const code = isDemo ? DEMO_CODE : String(Math.floor(100000 + Math.random() * 900000));
     otpStore[idf] = code;
-    // console.log(`OTP لـ ${idf}: ${code}`); // تم إيقاف طباعة الرمز للأمان في وضع الإنتاج
-    console.log(`[أمن] تم توليد رمز تحقق للحساب: ${idf}`);
+
+    if (isDemo) {
+      console.log(`[تجريبي] تسجيل دخول بحساب تجريبي: ${idf} — الرمز: ${DEMO_CODE}`);
+    } else {
+      console.log(`[أمن] تم توليد رمز تحقق للحساب: ${idf}`);
+    }
+
     const out = { message: 'تم إرسال رمز التحقق' };
-    if (!PROD) out.dev_code = code;
+    // إرسال الرمز للتطبيق فقط للحسابات التجريبية (حتى في وضع الإنتاج)
+    if (isDemo || !PROD) out.dev_code = code;
     return send(res, 200, out);
   }
   if (p[0] === 'auth' && p[1] === 'verify-otp' && method === 'POST') {
