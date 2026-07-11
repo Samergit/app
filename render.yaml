@@ -3,7 +3,7 @@ services:
     name: awqaf-damas
     env: node
     plan: free
-    buildCommand: echo "No build needed"
+    buildCommand: npm ci --omit=dev
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
@@ -12,3 +12,13 @@ services:
         value: 10000
       - key: SECRET
         generateValue: true
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_MANAGER_EMAIL
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: مديرية أوقاف دمشق
+      - key: ENABLE_DEMO_OTP
+        value: "true"
