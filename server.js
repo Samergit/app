@@ -7,6 +7,7 @@ const http = require('http');
 const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const dns = require('dns');
 const nodemailer = require('nodemailer');
 
 const PORT = process.env.PORT || 3000;
@@ -16,9 +17,10 @@ const DB_FILE = path.join(DATA_DIR, 'data.json');
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 
 const PROD = process.env.NODE_ENV === 'production';
-const SECRET = process.env.SECRET || 'awqaf-dimashq-demo-secret-change-in-production';
-if (PROD && SECRET.includes('demo-secret'))
-  console.warn('[تحذير] عيّن متغير البيئة SECRET بقيمة سرية قوية في الإنتاج.');
+const CONFIGURED_SECRET = String(process.env.SECRET || '').trim();
+const SECRET = CONFIGURED_SECRET || crypto.randomBytes(32).toString('hex');
+if (PROD && !CONFIGURED_SECRET)
+  console.warn('[تحذير] SECRET غير مضبوط؛ استُخدم سر مؤقت آمن وستنتهي الجلسات عند إعادة التشغيل.');
 
 const GMAIL_USER = String(process.env.GMAIL_USER || '').trim().toLowerCase();
 const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, '');
@@ -126,7 +128,7 @@ function publicItem(it) {
 
 /* ---------- مصادقة بسيطة (OTP بالبريد + رمز جلسة موقّع HMAC) ---------- */
 const otpStore = new Map(); // user id -> { digest, expiresAt, attempts, sentAt }
-let mailTransport = null;
+let testMailTransport = null;
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
@@ -142,25 +144,40 @@ function maskEmail(email) {
   const visible = name.length <= 2 ? name[0] : name.slice(0, 2);
   return `${visible}${'*'.repeat(Math.max(2, Math.min(6, name.length - visible.length)))}@${domain}`;
 }
-function getMailTransport() {
-  if (mailTransport) return mailTransport;
+async function resolveGmailIpv4() {
+  let addresses = [];
+  try {
+    addresses = await dns.promises.resolve4('smtp.gmail.com');
+  } catch (_err) {
+    const fallback = await dns.promises.lookup('smtp.gmail.com', { family: 4, all: true });
+    addresses = fallback.map(entry => entry.address);
+  }
+  addresses = addresses.filter(address => /^\d{1,3}(?:\.\d{1,3}){3}$/.test(address));
+  if (!addresses.length) throw new Error('GMAIL_IPV4_NOT_FOUND');
+  return addresses[crypto.randomInt(0, addresses.length)];
+}
+async function getMailTransport() {
   if (TEST_MAIL_TRANSPORT) {
-    mailTransport = nodemailer.createTransport({ jsonTransport: true });
-  } else if (GMAIL_USER && GMAIL_APP_PASSWORD) {
-    mailTransport = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
+    if (!testMailTransport) testMailTransport = nodemailer.createTransport({ jsonTransport: true });
+    return testMailTransport;
+  }
+  if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+    const gmailIpv4 = await resolveGmailIpv4();
+    return nodemailer.createTransport({
+      host: gmailIpv4,
       port: 465,
       secure: true,
       auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+      tls: { servername: 'smtp.gmail.com', minVersion: 'TLSv1.2' },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
       socketTimeout: 20000,
     });
   }
-  return mailTransport;
+  return null;
 }
 async function sendOtpEmail(user, code) {
-  const transport = getMailTransport();
+  const transport = await getMailTransport();
   if (!transport) throw new Error('MAIL_NOT_CONFIGURED');
   if (!isValidEmail(user.email)) throw new Error('INVALID_RECIPIENT_EMAIL');
 
