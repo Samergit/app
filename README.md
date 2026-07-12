@@ -3,7 +3,7 @@
 # تطبيق تبادل مستلزمات المساجد — مديرية أوقاف دمشق
 
 نظام متكامل يعمل فعلياً: **سيرفر خلفي + قاعدة بيانات + واجهة ويب** تعمل على الهاتف والحاسوب.
-مبني بـ Node.js، ويستخدم **Nodemailer** لإرسال رموز الدخول عبر Gmail.
+مبني بـ Node.js، ويرسل رموز الدخول عبر **Google Apps Script/HTTPS**، مع إبقاء Nodemailer وGmail SMTP خياراً احتياطياً للتشغيل المحلي أو الاستضافات التي تسمح به.
 
 ## التشغيل (الطريقة السهلة — ويندوز)
 
@@ -21,17 +21,37 @@ npm start
 ```
 ثم افتح المتصفح على `http://localhost:3000`.
 
-## إعداد Gmail OTP على Render
+## إعداد Gmail OTP على Render (الطريقة الموصى بها)
 
-لا تستخدم كلمة مرور حساب Google العادية. فعّل التحقق بخطوتين في Google، ثم أنشئ **App Password** خاصاً بالموقع، وأضف القيم التالية من صفحة الخدمة في Render ضمن **Environment**:
+قد تحظر بعض الاستضافات منافذ Gmail SMTP. لذلك يستخدم التطبيق Google Apps Script كجسر HTTPS عند ضبط المتغيرين التاليين:
+
+| المتغير | القيمة |
+|---|---|
+| `GMAIL_APPS_SCRIPT_URL` | رابط نشر Web App المنتهي بـ `/exec` |
+| `GMAIL_WEBHOOK_SECRET` | سر عشوائي بطول 32 محرفاً على الأقل، مطابق للقيمة `WEBHOOK_SECRET` في Script Properties |
+| `BOOTSTRAP_MANAGER_EMAIL` | بريد المدير الذي سيستقبل رمز الدخول الحقيقي (اختياري للتجربة) |
+| `MAIL_FROM_NAME` | اسم المرسل، والقيمة المقترحة `مديرية أوقاف دمشق` |
+| `ENABLE_DEMO_OTP` | `true` لإبقاء الحسابات التجريبية، و`false` قبل الاستخدام الحقيقي |
+
+خطوات إعداد Apps Script:
+
+1. افتح `https://script.google.com` وأنشئ مشروعاً جديداً.
+2. انسخ محتوى `google-apps-script/Code.gs` إلى ملف `Code.gs` في المشروع.
+3. من **Project Settings → Script Properties** أضف `WEBHOOK_SECRET` بقيمة سرية عشوائية طويلة.
+4. من **Deploy → New deployment → Web app** اختر **Execute as: Me** و**Who has access: Anyone** ثم وافق على صلاحية إرسال البريد.
+5. انسخ رابط `/exec` إلى `GMAIL_APPS_SCRIPT_URL` في Render، وضع السر نفسه في `GMAIL_WEBHOOK_SECRET`.
+6. انشر أحدث commit في Render واختبر طلب رمز الدخول.
+
+الطلبات بين Render وApps Script موقعة بـ HMAC، وتنتهي صلاحيتها بعد خمس دقائق، ويُرفض تكرار الطلب نفسه. لا يُرسل السر نفسه عبر الشبكة.
+
+### Gmail SMTP (خيار احتياطي)
+
+إذا كانت الاستضافة تسمح بالاتصال بـ Gmail SMTP، يمكن بدلاً من Apps Script ضبط:
 
 | المتغير | القيمة |
 |---|---|
 | `GMAIL_USER` | عنوان Gmail الذي سيرسل الرسائل |
-| `GMAIL_APP_PASSWORD` | كلمة مرور التطبيق ذات 16 رمزاً، وليس كلمة مرور الحساب |
-| `BOOTSTRAP_MANAGER_EMAIL` | بريد المدير الذي سيستقبل رمز الدخول الحقيقي (اختياري للتجربة) |
-| `MAIL_FROM_NAME` | اسم المرسل، والقيمة المقترحة `مديرية أوقاف دمشق` |
-| `ENABLE_DEMO_OTP` | `true` لإبقاء الحسابات التجريبية، و`false` قبل الاستخدام الحقيقي |
+| `GMAIL_APP_PASSWORD` | كلمة مرور تطبيق Google ذات 16 رمزاً، وليست كلمة مرور الحساب |
 
 إعداد البناء في Render:
 
@@ -40,7 +60,7 @@ Build Command: npm ci --omit=dev
 Start Command: node server.js
 ```
 
-لا تضع `GMAIL_APP_PASSWORD` في GitHub أو داخل أي ملف. إذا دخل المستخدم برقم جواله، يُرسَل الرمز إلى البريد المرتبط بحسابه.
+لا تضع `GMAIL_WEBHOOK_SECRET` أو `GMAIL_APP_PASSWORD` في GitHub أو داخل أي ملف. عند ضبط Apps Script يستخدمه التطبيق قبل SMTP. وإذا دخل المستخدم برقم جواله، يُرسَل الرمز إلى البريد المرتبط بحسابه.
 
 ## الحسابات التجريبية
 
@@ -68,6 +88,7 @@ Start Command: node server.js
 ```
 awqaf_app/
   server.js            ← السيرفر الخلفي + API + إرسال Gmail OTP
+  google-apps-script/  ← جسر Gmail الآمن عبر HTTPS
   package.json         ← اعتماد Nodemailer وأوامر التشغيل
   package-lock.json    ← تثبيت نسخة الاعتماد المستخدمة
   data.json            ← قاعدة البيانات (تُنشأ تلقائياً عند أول تشغيل)

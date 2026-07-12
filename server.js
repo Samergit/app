@@ -1,6 +1,6 @@
 /* =====================================================================
    تطبيق تبادل مستلزمات المساجد — مديرية أوقاف دمشق
-   سيرفر خلفي كامل مع إرسال OTP بالبريد عبر Gmail/Nodemailer
+   سيرفر خلفي كامل مع إرسال OTP بالبريد عبر Google Apps Script أو Gmail SMTP
    التشغيل:  npm install && npm start   ثم افتح http://localhost:3000
    ===================================================================== */
 const http = require('http');
@@ -24,9 +24,13 @@ if (PROD && !CONFIGURED_SECRET)
 
 const GMAIL_USER = String(process.env.GMAIL_USER || '').trim().toLowerCase();
 const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, '');
+const GMAIL_APPS_SCRIPT_URL = String(process.env.GMAIL_APPS_SCRIPT_URL || '').trim();
+const GMAIL_WEBHOOK_SECRET = String(process.env.GMAIL_WEBHOOK_SECRET || '').trim();
 const MAIL_FROM_NAME = String(process.env.MAIL_FROM_NAME || 'مديرية أوقاف دمشق').trim();
 const TEST_MAIL_TRANSPORT = !PROD && process.env.MAIL_TRANSPORT === 'json';
-const MAIL_CONFIGURED = TEST_MAIL_TRANSPORT || Boolean(GMAIL_USER && GMAIL_APP_PASSWORD);
+const APPS_SCRIPT_CONFIGURED = Boolean(GMAIL_APPS_SCRIPT_URL && GMAIL_WEBHOOK_SECRET.length >= 32);
+const SMTP_CONFIGURED = Boolean(GMAIL_USER && GMAIL_APP_PASSWORD);
+const MAIL_CONFIGURED = TEST_MAIL_TRANSPORT || APPS_SCRIPT_CONFIGURED || SMTP_CONFIGURED;
 const ENABLE_DEMO_OTP = /^(1|true|yes)$/i.test(String(process.env.ENABLE_DEMO_OTP || 'true'));
 const BOOTSTRAP_MANAGER_EMAIL = String(process.env.BOOTSTRAP_MANAGER_EMAIL || '').trim().toLowerCase();
 
@@ -34,8 +38,17 @@ const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_RESEND_MS = 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 
-if (!MAIL_CONFIGURED)
-  console.warn('[البريد] Gmail غير مضبوط؛ الحسابات غير التجريبية لن تستقبل رمز الدخول.');
+if (!MAIL_CONFIGURED) {
+  console.warn('[البريد] خدمة الإرسال غير مضبوطة؛ الحسابات غير التجريبية لن تستقبل رمز الدخول.');
+} else if (APPS_SCRIPT_CONFIGURED) {
+  console.log('[البريد] طريقة الإرسال: Google Apps Script عبر HTTPS.');
+} else if (SMTP_CONFIGURED) {
+  console.log('[البريد] طريقة الإرسال: Gmail SMTP.');
+}
+if (Boolean(GMAIL_APPS_SCRIPT_URL) !== Boolean(GMAIL_WEBHOOK_SECRET))
+  console.warn('[البريد] إعداد Apps Script غير مكتمل؛ يلزم الرابط والمفتاح السري معاً.');
+else if (GMAIL_WEBHOOK_SECRET && GMAIL_WEBHOOK_SECRET.length < 32)
+  console.warn('[البريد] GMAIL_WEBHOOK_SECRET قصير؛ استخدم 32 محرفاً على الأقل.');
 
 // ================================================================
 // الحسابات التجريبية: تستخدم رمزاً ثابتاً عند ENABLE_DEMO_OTP=true فقط.
@@ -176,10 +189,66 @@ async function getMailTransport() {
   }
   return null;
 }
+function appsScriptSignature(timestamp, nonce, recipient, code) {
+  const message = [timestamp, nonce, recipient, code].join('\n');
+  return crypto.createHmac('sha256', GMAIL_WEBHOOK_SECRET).update(message).digest('hex');
+}
+async function sendViaAppsScript(user, code) {
+  let endpoint;
+  try {
+    endpoint = new URL(GMAIL_APPS_SCRIPT_URL);
+  } catch (_err) {
+    throw new Error('INVALID_APPS_SCRIPT_URL');
+  }
+  if (!['http:', 'https:'].includes(endpoint.protocol) || (PROD && endpoint.protocol !== 'https:'))
+    throw new Error('INVALID_APPS_SCRIPT_URL');
+
+  const timestamp = String(Date.now());
+  const nonce = crypto.randomBytes(16).toString('hex');
+  const payload = {
+    to: user.email,
+    fullName: user.fullName || '',
+    code,
+    timestamp,
+    nonce,
+    signature: appsScriptSignature(timestamp, nonce, user.email, code),
+  };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  let response;
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err && err.name === 'AbortError') throw new Error('APPS_SCRIPT_TIMEOUT');
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const raw = await response.text();
+  let result = null;
+  try { result = JSON.parse(raw); } catch (_err) { /* handled below */ }
+  if (!response.ok) throw new Error(`APPS_SCRIPT_HTTP_${response.status}`);
+  if (!result || result.ok !== true) {
+    const codeName = String((result && result.error) || 'INVALID_RESPONSE')
+      .replace(/[^A-Za-z0-9_-]/g, '').slice(0, 60);
+    throw new Error(`APPS_SCRIPT_${codeName || 'ERROR'}`);
+  }
+}
 async function sendOtpEmail(user, code) {
+  if (!isValidEmail(user.email)) throw new Error('INVALID_RECIPIENT_EMAIL');
+
+  // عند ضبط Apps Script نستخدم HTTPS حصراً لتجنب حظر منافذ SMTP في الاستضافة.
+  if (APPS_SCRIPT_CONFIGURED) return sendViaAppsScript(user, code);
+
   const transport = await getMailTransport();
   if (!transport) throw new Error('MAIL_NOT_CONFIGURED');
-  if (!isValidEmail(user.email)) throw new Error('INVALID_RECIPIENT_EMAIL');
 
   await transport.sendMail({
     from: { name: MAIL_FROM_NAME, address: GMAIL_USER || 'test@awqaf.invalid' },
