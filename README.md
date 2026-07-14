@@ -31,7 +31,7 @@ npm start
 | `GMAIL_WEBHOOK_SECRET` | سر عشوائي بطول 32 محرفاً على الأقل، مطابق للقيمة `WEBHOOK_SECRET` في Script Properties |
 | `BOOTSTRAP_MANAGER_EMAIL` | بريد المدير الذي سيستقبل رمز الدخول الحقيقي (اختياري للتجربة) |
 | `MAIL_FROM_NAME` | اسم المرسل، والقيمة المقترحة `مديرية أوقاف دمشق` |
-| `ENABLE_DEMO_OTP` | `true` لإبقاء الحسابات التجريبية، و`false` قبل الاستخدام الحقيقي |
+| `ENABLE_DEMO_LOGIN` | `true` لإظهار الدخول التجريبي المباشر، و`false` قبل الاستخدام الحقيقي |
 
 خطوات إعداد Apps Script:
 
@@ -64,16 +64,14 @@ Start Command: node server.js
 
 ## الحسابات التجريبية
 
-يمكن الدخول بالبريد الإلكتروني أو رقم الجوال:
+تعرض شاشة الدخول ثلاثة أزرار: **قيّم مسجد** و**موظف وزارة** و**مدير عام**. ينشئ كل زر جلسة تجريبية مباشرة من دون بريد أو OTP.
 
-| الدور | البريد الإلكتروني | رقم الجوال |
-|------|------------------|------------|
-| قيّم مسجد (جامع الإيمان) | `ahmad@awqaf-damas.gov.sy` | `0911000001` |
-| قيّم مسجد (الجامع الأموي) | `mahmoud@awqaf-damas.gov.sy` | `0911000002` |
-| موظف الوزارة (الموافقات) | `ministry@awqaf-damas.gov.sy` | `0922000000` |
-| المدير العام (الإشراف) | `manager@awqaf-damas.gov.sy` | `0933000000` |
+- الجلسات التجريبية منفصلة عن حسابات المستخدمين الفعلية، ولا تعرض بريد المدير الحقيقي في شاشة الحسابات.
+- موظف الوزارة لا يرى إلا حسابات قيمي المساجد، ولا يستطيع إنشاء موظف آخر.
+- المدير العام وحده يستطيع إنشاء حساب موظف وزارة.
+- الحساب الحقيقي يستمر في استخدام OTP العشوائي عبر البريد.
 
-> عندما تكون `ENABLE_DEMO_OTP=true` تستخدم الحسابات أعلاه الرمز `000000`. الحسابات الأخرى تستقبل رمزاً عشوائياً عبر Gmail. عطّل الحسابات التجريبية قبل أي استخدام حقيقي.
+> عطّل `ENABLE_DEMO_LOGIN` قبل إدخال بيانات تشغيل حقيقية، لأن الدخول التجريبي يمنح صلاحيات الدور المختار داخل بيئة العرض.
 
 ## التدفّق الكامل
 
@@ -102,7 +100,8 @@ awqaf_app/
 
 ## واجهة الـ API (مرجع سريع)
 
-- `POST /api/auth/request-otp` · `POST /api/auth/verify-otp`
+- `POST /api/auth/demo-login` · `POST /api/auth/request-otp` · `POST /api/auth/verify-otp`
+- `GET /api/users` · `POST /api/users` مع فرض صلاحيات إنشاء الحسابات في الخادم
 - `GET /api/items?scope=browse|mine|myrequests` · `POST /api/items` · `DELETE /api/items/:id`
 - `POST /api/items/:id/request` · `POST /api/items/:id/deliver`
 - `GET /api/requests?status=pending` · `POST /api/requests/:id/approve` · `POST /api/requests/:id/reject`

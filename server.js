@@ -31,12 +31,13 @@ const TEST_MAIL_TRANSPORT = !PROD && process.env.MAIL_TRANSPORT === 'json';
 const APPS_SCRIPT_CONFIGURED = Boolean(GMAIL_APPS_SCRIPT_URL && GMAIL_WEBHOOK_SECRET.length >= 32);
 const SMTP_CONFIGURED = Boolean(GMAIL_USER && GMAIL_APP_PASSWORD);
 const MAIL_CONFIGURED = TEST_MAIL_TRANSPORT || APPS_SCRIPT_CONFIGURED || SMTP_CONFIGURED;
-const ENABLE_DEMO_OTP = /^(1|true|yes)$/i.test(String(process.env.ENABLE_DEMO_OTP || 'true'));
+const ENABLE_DEMO_LOGIN = /^(1|true|yes)$/i.test(String(process.env.ENABLE_DEMO_LOGIN || 'true'));
 const BOOTSTRAP_MANAGER_EMAIL = String(process.env.BOOTSTRAP_MANAGER_EMAIL || '').trim().toLowerCase();
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_RESEND_MS = 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
+const AUTH_TOKEN_VERSION = 2;
 
 if (!MAIL_CONFIGURED) {
   console.warn('[البريد] خدمة الإرسال غير مضبوطة؛ الحسابات غير التجريبية لن تستقبل رمز الدخول.');
@@ -51,24 +52,43 @@ else if (GMAIL_WEBHOOK_SECRET && GMAIL_WEBHOOK_SECRET.length < 32)
   console.warn('[البريد] GMAIL_WEBHOOK_SECRET قصير؛ استخدم 32 محرفاً على الأقل.');
 
 // ================================================================
-// الحسابات التجريبية: تستخدم رمزاً ثابتاً عند ENABLE_DEMO_OTP=true فقط.
-// عطّلها في أي استخدام حقيقي بوضع ENABLE_DEMO_OTP=false في Render.
+// جلسات تجريبية منفصلة عن الحسابات الحقيقية ولا تحتاج إلى OTP.
+// عطّلها في أي استخدام حقيقي بوضع ENABLE_DEMO_LOGIN=false في Render.
 // ================================================================
-const DEMO_ACCOUNTS = new Set([
-  'ahmad@awqaf-damas.gov.sy',
-  '0911000001',
-  'mahmoud@awqaf-damas.gov.sy',
-  '0911000002',
-  'khaled@awqaf-damas.gov.sy',
-  '0911000003',
-  'omar@awqaf-damas.gov.sy',
-  '0911000004',
-  'ministry@awqaf-damas.gov.sy',
-  '0922000000',
-  'manager@awqaf-damas.gov.sy',
-  '0933000000',
-]);
-const DEMO_CODE = '000000';
+const DEMO_USERS = Object.freeze({
+  imam: Object.freeze({
+    id: 'demo-imam',
+    fullName: 'قيّم مسجد — حساب تجريبي',
+    phone: '0000000001',
+    email: 'demo-imam@awqaf-damas.example',
+    role: 'imam',
+    mosqueId: 2,
+    isDemo: true,
+  }),
+  ministry: Object.freeze({
+    id: 'demo-ministry',
+    fullName: 'موظف الوزارة — حساب تجريبي',
+    phone: '0000000002',
+    email: 'demo-ministry@awqaf-damas.example',
+    role: 'ministry',
+    mosqueId: null,
+    isDemo: true,
+  }),
+  manager: Object.freeze({
+    id: 'demo-manager',
+    fullName: 'المدير العام — حساب تجريبي',
+    phone: '0000000003',
+    email: 'demo-manager@awqaf-damas.example',
+    role: 'manager',
+    mosqueId: null,
+    isDemo: true,
+  }),
+});
+const demoCreatedUsers = [];
+let demoCreatedUserSeq = 1;
+
+if (PROD && ENABLE_DEMO_LOGIN)
+  console.warn('[تجريبي] الدخول المباشر للأدوار الثلاثة مفعّل. عطّله قبل استخدام النظام ببيانات حقيقية.');
 
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
@@ -132,6 +152,17 @@ function findUser(idf) {
   idf = String(idf || '').trim().toLowerCase();
   if (!idf) return null;
   return db.users.find(u => u.phone === idf || (u.email || '').toLowerCase() === idf) || null;
+}
+function demoUser(role) {
+  const profile = DEMO_USERS[String(role || '').trim().toLowerCase()];
+  return profile ? { ...profile } : null;
+}
+function sessionUser(user, isDemo = false) {
+  return {
+    ...user,
+    mosque: user.mosqueId ? mosqueName(user.mosqueId) : null,
+    demo: Boolean(isDemo),
+  };
 }
 function publicItem(it) {
   return { ...it,
@@ -296,11 +327,17 @@ function verify(token) {
     return p;
   } catch { return null; }
 }
-function authUser(req) {
+function authSession(req) {
   const h = req.headers['authorization'] || '';
   const p = verify(h.replace(/^Bearer\s+/i, ''));
-  if (!p) return null;
-  return db.users.find(u => u.id === p.uid) || null;
+  if (!p || p.v !== AUTH_TOKEN_VERSION) return null;
+  if (p.demo === true) {
+    if (!ENABLE_DEMO_LOGIN) return null;
+    const user = demoUser(p.role);
+    return user ? { user, isDemo: true } : null;
+  }
+  const user = db.users.find(u => u.id === p.uid) || null;
+  return user ? { user, isDemo: false } : null;
 }
 
 /* ---------- أدوات الاستجابة ---------- */
@@ -335,6 +372,21 @@ async function api(req, res, url) {
   const method = req.method;
 
   /* --- المصادقة --- */
+  if (p[0] === 'auth' && p[1] === 'demo-login' && method === 'POST') {
+    if (!ENABLE_DEMO_LOGIN)
+      return send(res, 403, { error: 'الدخول التجريبي غير مفعّل' });
+
+    const body = await readBody(req);
+    const role = String(body.role || '').trim().toLowerCase();
+    const user = demoUser(role);
+    if (!user)
+      return send(res, 400, { error: 'الدور التجريبي غير صالح' });
+
+    const token = sign({ uid: user.id, role: user.role, demo: true, v: AUTH_TOKEN_VERSION, exp: Date.now() + 8 * 60 * 60 * 1000 });
+    console.log(`[تجريبي] دخول مباشر بدور ${role}`);
+    return send(res, 200, { token, user: sessionUser(user, true), demo: true });
+  }
+
   if (p[0] === 'auth' && p[1] === 'request-otp' && method === 'POST') {
     const body = await readBody(req);
     const idf = String(body.identifier || body.email || body.phone || '').trim().toLowerCase();
@@ -349,23 +401,18 @@ async function api(req, res, url) {
       return send(res, 429, { error: `انتظر ${retryAfter} ثانية قبل طلب رمز جديد`, retry_after: retryAfter });
     }
 
-    const isDemo = ENABLE_DEMO_OTP && DEMO_ACCOUNTS.has(idf);
-    const code = isDemo ? DEMO_CODE : String(crypto.randomInt(100000, 1000000));
+    const code = String(crypto.randomInt(100000, 1000000));
 
-    if (isDemo) {
-      console.log(`[تجريبي] تسجيل دخول بحساب تجريبي: ${idf} — الرمز: ${DEMO_CODE}`);
-    } else {
-      if (!MAIL_CONFIGURED)
-        return send(res, 503, { error: 'خدمة البريد غير مضبوطة بعد. راجع إدارة النظام.' });
-      if (!isValidEmail(user.email))
-        return send(res, 400, { error: 'لا يوجد بريد إلكتروني صالح مرتبط بهذا الحساب' });
-      try {
-        await sendOtpEmail(user, code);
-        console.log(`[البريد] أُرسل رمز تحقق للمستخدم رقم ${user.id} إلى ${maskEmail(user.email)}`);
-      } catch (e) {
-        console.error(`[البريد] تعذر إرسال OTP للمستخدم رقم ${user.id}:`, e.message);
-        return send(res, 503, { error: 'تعذر إرسال رمز التحقق عبر البريد. حاول لاحقاً.' });
-      }
+    if (!MAIL_CONFIGURED)
+      return send(res, 503, { error: 'خدمة البريد غير مضبوطة بعد. راجع إدارة النظام.' });
+    if (!isValidEmail(user.email))
+      return send(res, 400, { error: 'لا يوجد بريد إلكتروني صالح مرتبط بهذا الحساب' });
+    try {
+      await sendOtpEmail(user, code);
+      console.log(`[البريد] أُرسل رمز تحقق للمستخدم رقم ${user.id} إلى ${maskEmail(user.email)}`);
+    } catch (e) {
+      console.error(`[البريد] تعذر إرسال OTP للمستخدم رقم ${user.id}:`, e.message);
+      return send(res, 503, { error: 'تعذر إرسال رمز التحقق عبر البريد. حاول لاحقاً.' });
     }
 
     otpStore.set(key, {
@@ -376,12 +423,12 @@ async function api(req, res, url) {
     });
 
     const out = {
-      message: isDemo ? 'تم إنشاء رمز الحساب التجريبي' : 'تم إرسال رمز التحقق إلى بريدك الإلكتروني',
-      delivery_hint: isDemo ? 'الحساب التجريبي' : maskEmail(user.email),
+      message: 'تم إرسال رمز التحقق إلى بريدك الإلكتروني',
+      delivery_hint: maskEmail(user.email),
       expires_in: Math.floor(OTP_TTL_MS / 1000),
     };
     // يفيد الاختبارات المحلية فقط؛ Render مضبوط على NODE_ENV=production.
-    if (isDemo || !PROD) out.dev_code = code;
+    if (!PROD) out.dev_code = code;
     return send(res, 200, out);
   }
   if (p[0] === 'auth' && p[1] === 'verify-otp' && method === 'POST') {
@@ -408,12 +455,14 @@ async function api(req, res, url) {
     }
 
     otpStore.delete(key);
-    const token = sign({ uid: user.id, role: user.role, exp: Date.now() + 30 * 86400000 });
-    return send(res, 200, { token, user: { ...user, mosque: user.mosqueId ? mosqueName(user.mosqueId) : null } });
+    const token = sign({ uid: user.id, role: user.role, v: AUTH_TOKEN_VERSION, exp: Date.now() + 30 * 86400000 });
+    return send(res, 200, { token, user: sessionUser(user, false) });
   }
 
   /* كل ما يلي يتطلب تسجيل دخول (إلا بعض الاستثناءات العامة للضيوف) */
-  const me = authUser(req);
+  const auth = authSession(req);
+  const me = auth && auth.user;
+  const isDemoSession = Boolean(auth && auth.isDemo);
 
   // السماح للضيوف بتصفح المساجد المتاحة
   if (p[0] === 'mosques' && method === 'GET')
@@ -433,13 +482,24 @@ async function api(req, res, url) {
   if (!me) return send(res, 401, { error: 'يجب تسجيل الدخول' });
 
   if (p[0] === 'me' && method === 'GET')
-    return send(res, 200, { ...me, mosque: me.mosqueId ? mosqueName(me.mosqueId) : null });
+    return send(res, 200, sessionUser(me, isDemoSession));
 
   /* --- إدارة الحسابات (إضافة وعرض) --- */
   if (p[0] === 'users' && method === 'GET') {
     if (me.role !== 'ministry' && me.role !== 'manager')
       return send(res, 403, { error: 'صلاحية غير كافية' });
-    const mapped = db.users.map(u => ({
+
+    let visibleUsers;
+    if (isDemoSession) {
+      const builtInDemoUsers = Object.values(DEMO_USERS).map(u => ({ ...u }));
+      visibleUsers = [...builtInDemoUsers, ...demoCreatedUsers];
+    } else {
+      visibleUsers = db.users.filter(u => u.isDemo !== true);
+    }
+    if (me.role === 'ministry')
+      visibleUsers = visibleUsers.filter(u => u.role === 'imam');
+
+    const mapped = visibleUsers.map(u => ({
       ...u,
       mosqueName: u.mosqueId ? mosqueName(u.mosqueId) : null
     }));
@@ -460,19 +520,26 @@ async function api(req, res, url) {
     if (!fullName || !phone || !email || !role)
       return send(res, 400, { error: 'بيانات الحساب ناقصة' });
 
-    if (role === 'ministry' && me.role !== 'manager')
-      return send(res, 403, { error: 'المدير العام فقط يمكنه إضافة موظفي الوزارة' });
+    const allowedRoles = me.role === 'manager' ? new Set(['imam', 'ministry']) : new Set(['imam']);
+    if (!allowedRoles.has(role))
+      return send(res, 403, {
+        error: me.role === 'manager'
+          ? 'يمكن للمدير إنشاء حساب قيم مسجد أو موظف وزارة فقط'
+          : 'موظف الوزارة يمكنه إنشاء حسابات قيمي المساجد فقط',
+      });
 
-    if (role !== 'imam' && role !== 'ministry')
-      return send(res, 400, { error: 'دور غير صالح' });
-
-    const exists = db.users.some(u => u.phone === phone || u.email.toLowerCase() === email);
+    const comparableUsers = isDemoSession
+      ? [...Object.values(DEMO_USERS), ...demoCreatedUsers]
+      : db.users.filter(u => u.isDemo !== true);
+    const exists = comparableUsers.some(u => u.phone === phone || (u.email || '').toLowerCase() === email);
     if (exists)
       return send(res, 400, { error: 'رقم الجوال أو البريد الإلكتروني مسجّل بالفعل لكائن آخر' });
 
     let finalMosqueId = null;
     if (role === 'imam') {
       if (newMosque && newMosque.name && newMosque.area) {
+        if (isDemoSession)
+          return send(res, 403, { error: 'الحساب التجريبي يربط المستخدم بمسجد موجود ولا ينشئ مساجد جديدة' });
         const mId = Math.max(0, ...db.mosques.map(m => m.id)) + 1;
         db.mosques.push({ id: mId, name: newMosque.name, area: newMosque.area });
         finalMosqueId = mId;
@@ -485,10 +552,16 @@ async function api(req, res, url) {
       }
     }
 
-    const uId = Math.max(0, ...db.users.map(u => u.id)) + 1;
-    const newUser = { id: uId, fullName, phone, email, role, mosqueId: finalMosqueId };
-    db.users.push(newUser);
-    saveDB();
+    const uId = isDemoSession
+      ? `demo-created-${demoCreatedUserSeq++}`
+      : Math.max(0, ...db.users.map(u => Number.isFinite(Number(u.id)) ? Number(u.id) : 0)) + 1;
+    const newUser = { id: uId, fullName, phone, email, role, mosqueId: finalMosqueId, isDemo: isDemoSession };
+    if (isDemoSession) {
+      demoCreatedUsers.push(newUser);
+    } else {
+      db.users.push(newUser);
+      saveDB();
+    }
     return send(res, 201, newUser);
   }
 

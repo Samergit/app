@@ -12,6 +12,15 @@ Authorization: Bearer <token>
 
 ## المصادقة
 
+### POST /api/auth/demo-login
+ينشئ جلسة تجريبية مباشرة من دون OTP عندما يكون `ENABLE_DEMO_LOGIN=true`.
+
+**الطلب:** `{ "role": "imam" }` حيث الدور أحد `imam` أو `ministry` أو `manager`.
+
+**الرد (200):** `{ "token": "...", "user": { "role": "imam", "demo": true }, "demo": true }`
+
+> الجلسات التجريبية منفصلة عن الحسابات الحقيقية ومدتها 8 ساعات. الخطأ `403` يعني أن وضع التجربة معطّل، و`400` يعني أن الدور غير صالح.
+
 ### POST /api/auth/request-otp
 طلب رمز تحقق. يقبل **البريد الإلكتروني أو رقم الجوال** في الحقل `identifier` (ويقبل أيضاً `email` أو `phone` لأجل التوافق).
 
@@ -43,6 +52,18 @@ Authorization: Bearer <token>
 
 ### GET /api/mosques
 قائمة المساجد. **الرد:** `{ "data": [ { "id", "name", "area" } ] }`
+
+### GET /api/users  *(موظف وزارة / مدير)*
+
+- موظف الوزارة يرى حسابات قيمي المساجد فقط.
+- المدير يرى الحسابات التي تدخل ضمن وضع جلسته.
+- الجلسة التجريبية لا تعيد الحسابات الحقيقية أو بريد المدير الحقيقي.
+
+### POST /api/users  *(موظف وزارة / مدير)*
+
+- موظف الوزارة يستطيع إنشاء `imam` فقط.
+- المدير يستطيع إنشاء `imam` أو `ministry`.
+- محاولة إنشاء دور غير مسموح تعيد `403`، بصرف النظر عما تعرضه الواجهة.
 
 ---
 
@@ -139,13 +160,11 @@ Authorization: Bearer <token>
 
 ```bash
 B=http://localhost:3000
-# 1) دخول القيّم
-CODE=$(curl -s -X POST $B/api/auth/request-otp -d '{"phone":"0911000001"}' | jq -r .dev_code)
-TOK=$(curl -s -X POST $B/api/auth/verify-otp -d "{\"phone\":\"0911000001\",\"code\":\"$CODE\"}" | jq -r .token)
+# 1) دخول القيّم التجريبي المباشر
+TOK=$(curl -s -X POST $B/api/auth/demo-login -H "Content-Type: application/json" -d '{"role":"imam"}' | jq -r .token)
 # 2) طلب غرض
 curl -s -X POST $B/api/items/1/request -H "Authorization: Bearer $TOK"
 # 3) دخول الوزارة والموافقة
-MC=$(curl -s -X POST $B/api/auth/request-otp -d '{"phone":"0922000000"}' | jq -r .dev_code)
-MT=$(curl -s -X POST $B/api/auth/verify-otp -d "{\"phone\":\"0922000000\",\"code\":\"$MC\"}" | jq -r .token)
+MT=$(curl -s -X POST $B/api/auth/demo-login -H "Content-Type: application/json" -d '{"role":"ministry"}' | jq -r .token)
 curl -s -X POST $B/api/requests/1/approve -H "Authorization: Bearer $MT" -d '{"note":"موافق"}'
 ```

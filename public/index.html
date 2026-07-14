@@ -612,7 +612,23 @@
     line-height: 1.7;
   }
   .login .demo b { color: #3a2e05; }
-  .login .demo code { background: #fff; padding: 1px 6px; border-radius: 5px; font-family: monospace; cursor: pointer; font-weight: 700; }
+  .login .demo-actions { display: grid; gap: 7px; margin-top: 9px; }
+  .login .demo-role {
+    width: 100%;
+    border: 1px solid rgba(106,84,16,0.18);
+    background: #fff;
+    color: #4e410e;
+    padding: 9px 10px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: right;
+  }
+  .login .demo-role:active { transform: scale(0.98); }
+  .login .demo-role[disabled] { opacity: 0.55; cursor: wait; }
+  .login .demo-note { display: block; margin-top: 8px; font-size: 10.5px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -774,12 +790,13 @@
         
         <div>
           <div class="demo">
-            <b>حسابات تجريبية</b> (اضغط للتعبئة):<br>
-            <div style="display:flex; flex-direction:column; gap:5px; margin-top:5px">
-              <span style="cursor:pointer" onclick="fillPhone('0911000001')">🕌 قيم جامع الإيمان: <code>0911000001</code></span>
-              <span style="cursor:pointer" onclick="fillPhone('0922000000')">🏢 موظف الوزارة: <code>0922000000</code></span>
-              <span style="cursor:pointer" onclick="fillPhone('0933000000')">👑 المدير العام: <code>0933000000</code></span>
+            <b>دخول تجريبي مباشر — بدون رمز</b>
+            <div class="demo-actions">
+              <button class="demo-role" data-demo-role="imam" onclick="demoLogin('imam')">🕌 الدخول كقيّم مسجد</button>
+              <button class="demo-role" data-demo-role="ministry" onclick="demoLogin('ministry')">🏢 الدخول كموظف وزارة</button>
+              <button class="demo-role" data-demo-role="manager" onclick="demoLogin('manager')">👑 الدخول كمدير عام</button>
             </div>
+            <span class="demo-note">هذه جلسات تجريبية منفصلة عن بريد المدير والحسابات الفعلية.</span>
           </div>
           <button class="btn btn-grey" style="margin-top:12px; width:100%" onclick="showSplash()">← رجوع للشاشة الرئيسية</button>
         </div>
@@ -884,13 +901,33 @@ async function api(path,opt={}){
   if(token)h['Authorization']='Bearer '+token;
   const r=await fetch(API+path,{...opt,headers:h});
   const data=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(data.error||'حدث خطأ');
+  if(!r.ok){
+    if(r.status===401&&token){
+      token=null;user=null;
+      localStorage.removeItem('awqaf_token');localStorage.removeItem('awqaf_user');
+      setTimeout(()=>location.reload(),80);
+    }
+    throw new Error(data.error||'حدث خطأ');
+  }
   return data;
 }
 
 /* ---- الدخول ---- */
-function fillPhone(p){document.getElementById('phone').value=p}
 function backToPhone(){document.getElementById('step2').classList.add('hide');document.getElementById('step1').classList.remove('hide')}
+async function demoLogin(role){
+  const buttons=[...document.querySelectorAll('[data-demo-role]')];
+  buttons.forEach(button=>button.disabled=true);
+  try{
+    const r=await api('/api/auth/demo-login',{method:'POST',body:JSON.stringify({role})});
+    token=r.token;user=r.user;
+    localStorage.setItem('awqaf_token',token);localStorage.setItem('awqaf_user',JSON.stringify(user));
+    enterApp();
+  }catch(e){
+    toast(e.message);
+  }finally{
+    buttons.forEach(button=>button.disabled=false);
+  }
+}
 async function requestOtp(){
   const phone=document.getElementById('phone').value.trim();
   if(!phone)return toast('أدخل البريد الإلكتروني أو رقم جوالك');
@@ -947,7 +984,7 @@ function showRegisterNotice() {
       أهلاً بك في نظام تبادل مستلزمات المساجد التابع لمديرية أوقاف دمشق.
       <br><br>
       <b>تنبيه هام:</b>
-      يتم تسجيل حسابات قيمي المساجد والموظفين وتفعيلها مركزياً من قِبل إدارة المساجد في المديرية أو المدير العام.
+      ينشئ موظف الوزارة حسابات قيمي المساجد فقط، بينما ينشئ المدير العام حسابات الموظفين.
       <br><br>
       إذا كنت قيّماً على مسجد ولم يتم تسجيلك بعد، يرجى مراجعة شعبة شؤون المساجد بالمديرية لتسجيل اسمك ورقم جوالك والمسجد التابع لك لتتمكن من الدخول الفوري عبر رقم جواله أو بريده.
     </p>
@@ -1018,9 +1055,11 @@ async function render(){
     else if (tab === 'mine') await renderMine();
     else if (tab === 'more') await renderMore();
     else if (tab === 'queue') await ministry();
+    else if (tab === 'dash') await manager();
     else if (tab === 'log') await logScreen();
     else if (tab === 'mosques') await manager();
     else if (tab === 'accounts') await accountsScreen();
+    else throw new Error('الصفحة المطلوبة غير متاحة');
   }catch(e){screen().innerHTML=`<div class="empty"><span class="em">⚠️</span><b>${e.message}</b></div>`}
   screen().scrollTop=0;
 }
@@ -1340,6 +1379,13 @@ async function accountsScreen() {
 }
 
 async function openAddAccount(role) {
+  if (!user || (user.role !== 'ministry' && user.role !== 'manager'))
+    return toast('صلاحية غير كافية');
+  if (role === 'ministry' && user.role !== 'manager')
+    return toast('المدير العام فقط يمكنه إنشاء حساب موظف وزارة');
+  if (role !== 'imam' && role !== 'ministry')
+    return toast('نوع الحساب غير صالح');
+
   const {data: mosques} = await api('/api/mosques');
   document.getElementById('ov').classList.add('show');
   
@@ -1351,7 +1397,7 @@ async function openAddAccount(role) {
         <select id="accMosqueId" onchange="toggleNewMosque(this.value)">
           <option value="">-- اختر من المساجد المسجلة --</option>
           ${mosques.map(m => `<option value="${m.id}">${m.name} (${m.area})</option>`).join('')}
-          <option value="new">+ إضافة مسجد جديد غير مدرج...</option>
+          ${user.demo ? '' : '<option value="new">+ إضافة مسجد جديد غير مدرج...</option>'}
         </select>
       </div>
       <div id="newMosqueFields" class="hide" style="border: 1px dashed var(--border-color); padding: 12px; border-radius: 10px; margin-bottom: 12px; background: #fafaf9;">
@@ -1390,6 +1436,9 @@ function toggleNewMosque(val) {
 }
 
 async function saveAccount(role) {
+  if (role === 'ministry' && (!user || user.role !== 'manager'))
+    return toast('المدير العام فقط يمكنه إنشاء حساب موظف وزارة');
+
   const fullName = document.getElementById('accName').value.trim();
   const phone = document.getElementById('accPhone').value.trim();
   const email = document.getElementById('accEmail').value.trim();
