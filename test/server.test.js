@@ -202,3 +202,22 @@ test('واجهة الويب تربط تبويب لوحة المدير وتعرض
   assert.equal(scripts.length, 1);
   assert.doesNotThrow(() => new Function(scripts[0][1]));
 });
+
+test('تعريف PWA وأيقونات Android صالحان للتغليف', async () => {
+  const manifestResponse = await fetch(baseUrl + '/manifest.json');
+  assert.equal(manifestResponse.status, 200);
+  const manifest = await manifestResponse.json();
+  assert.equal(manifest.id, '/');
+  assert.equal(manifest.scope, '/');
+  assert.equal(manifest.orientation, 'portrait-primary');
+
+  for (const size of [192, 512]) {
+    const iconResponse = await fetch(`${baseUrl}/icon-${size}.png`);
+    assert.equal(iconResponse.status, 200);
+    assert.match(iconResponse.headers.get('content-type') || '', /^image\/png/);
+    const bytes = Buffer.from(await iconResponse.arrayBuffer());
+    assert.deepEqual([...bytes.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    assert.equal(bytes.readUInt32BE(16), size);
+    assert.equal(bytes.readUInt32BE(20), size);
+  }
+});
