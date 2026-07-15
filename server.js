@@ -8,7 +8,6 @@ const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const dns = require('dns');
-const zlib = require('zlib');
 const nodemailer = require('nodemailer');
 
 const PORT = process.env.PORT || 3000;
@@ -672,87 +671,6 @@ async function api(req, res, url) {
 /* ===================== ملفات ثابتة ===================== */
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.json': 'application/json' };
-
-// يولّد أيقونتي Android كملفَي PNG حقيقيين من الهوية البصرية نفسها.
-// إبقاؤهما مولّدتين هنا يجعل النسخة المنشورة قابلة للتغليف دون اعتماد تصوير إضافي.
-function makePngChunk(type, data) {
-  const typeBytes = Buffer.from(type, 'ascii');
-  const length = Buffer.alloc(4);
-  length.writeUInt32BE(data.length);
-  const crcInput = Buffer.concat([typeBytes, data]);
-  let crc = 0xffffffff;
-  for (const byte of crcInput) {
-    crc ^= byte;
-    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
-  }
-  const crcBytes = Buffer.alloc(4);
-  crcBytes.writeUInt32BE((crc ^ 0xffffffff) >>> 0);
-  return Buffer.concat([length, typeBytes, data, crcBytes]);
-}
-
-function makeAppIcon(size) {
-  const green = [0x0b, 0x6e, 0x4f];
-  const gold = [0xc9, 0xa2, 0x27];
-  const raw = Buffer.alloc((size * 3 + 1) * size);
-  const ellipse = (x, y, cx, cy, rx, ry, degrees = 0) => {
-    const angle = degrees * Math.PI / 180;
-    const dx = x - cx;
-    const dy = y - cy;
-    const xr = dx * Math.cos(angle) + dy * Math.sin(angle);
-    const yr = -dx * Math.sin(angle) + dy * Math.cos(angle);
-    return (xr * xr) / (rx * rx) + (yr * yr) / (ry * ry) <= 1;
-  };
-  const wings = [
-    [300, 150, 13, 62, 52], [324, 170, 13, 56, 70],
-    [338, 194, 12, 50, 84], [342, 218, 11, 42, 96],
-    [212, 150, 13, 62, -52], [188, 170, 13, 56, -70],
-    [174, 194, 12, 50, -84], [170, 218, 11, 42, -96],
-  ];
-  const isGold = (x, y) => {
-    if (ellipse(x, y, 256, 112, 27, 27)) return true;
-    if (y >= 137 && y <= 158 && Math.abs(x - 256) <= (y - 137) * 0.62) return true;
-    if (y >= 146 && y <= 340) {
-      const halfWidth = 30 * Math.sin(Math.PI * (y - 146) / 194);
-      if (Math.abs(x - 256) <= halfWidth) return true;
-    }
-    if (wings.some(([cx, cy, rx, ry, angle]) => ellipse(x, y, cx, cy, rx, ry, angle))) return true;
-    return ellipse(x, y, 256, 388, 13, 54)
-      || ellipse(x, y, 244, 384, 10, 46, -12)
-      || ellipse(x, y, 268, 384, 10, 46, 12);
-  };
-
-  for (let py = 0; py < size; py++) {
-    const row = py * (size * 3 + 1);
-    raw[row] = 0;
-    for (let px = 0; px < size; px++) {
-      const x = (px + 0.5) * 512 / size;
-      const y = (py + 0.5) * 512 / size;
-      const color = isGold(x, y) ? gold : green;
-      const offset = row + 1 + px * 3;
-      raw[offset] = color[0];
-      raw[offset + 1] = color[1];
-      raw[offset + 2] = color[2];
-    }
-  }
-
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0);
-  ihdr.writeUInt32BE(size, 4);
-  ihdr[8] = 8;
-  ihdr[9] = 2;
-  return Buffer.concat([
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    makePngChunk('IHDR', ihdr),
-    makePngChunk('IDAT', zlib.deflateSync(raw, { level: 9 })),
-    makePngChunk('IEND', Buffer.alloc(0)),
-  ]);
-}
-
-const ANDROID_ICONS = Object.freeze({
-  '/icon-192.png': makeAppIcon(192),
-  '/icon-512.png': makeAppIcon(512),
-});
-
 function serveStatic(res, file) {
   fs.readFile(file, (err, data) => {
     if (err) { res.writeHead(404); res.end('404'); return; }
@@ -771,10 +689,6 @@ http.createServer(async (req, res) => {
 
   try {
     if (url.pathname.startsWith('/api/')) return await api(req, res, url);
-    if (ANDROID_ICONS[url.pathname]) {
-      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' });
-      return res.end(ANDROID_ICONS[url.pathname]);
-    }
     if (url.pathname.startsWith('/uploads/'))
       return serveStatic(res, path.join(UPLOAD_DIR, path.basename(decodeURIComponent(url.pathname))));
     if (url.pathname === '/' || url.pathname === '/index.html')
