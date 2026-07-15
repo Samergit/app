@@ -202,3 +202,40 @@ test('واجهة الويب تربط تبويب لوحة المدير وتعرض
   assert.equal(scripts.length, 1);
   assert.doesNotThrow(() => new Function(scripts[0][1]));
 });
+
+test('أيقونة التطبيق تستخدم هندسة شعار سوريا الرسمي بدل الرسم التقريبي', () => {
+  const html = fs.readFileSync(path.join(projectRoot, 'public', 'index.html'), 'utf8');
+  const icon = fs.readFileSync(path.join(projectRoot, 'public', 'icon.svg'), 'utf8');
+  const officialPath = html.match(/<path\s+fill="#b9a77a"\s+d="([^"]+)"/s)?.[1];
+  const iconPath = icon.match(/<path d="([^"]+)"/)?.[1];
+  const officialStars = [...html.matchAll(/<polygon[\s\S]*?points="([^"]+)"/g)]
+    .slice(0, 3)
+    .map(match => match[1]);
+  const iconStars = [...icon.matchAll(/<polygon points="([^"]+)"/g)]
+    .map(match => match[1]);
+
+  assert.ok(officialPath);
+  assert.equal(iconPath, officialPath);
+  assert.deepEqual(iconStars, officialStars);
+  assert.equal(iconStars.length, 3);
+  assert.doesNotMatch(icon, /<(?:ellipse|circle)\b/);
+  assert.match(icon, /aria-labelledby="title"/);
+
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(projectRoot, 'public', 'manifest.json'), 'utf8'),
+  );
+  assert.deepEqual(
+    manifest.icons.map(item => [item.src, item.sizes, item.type]),
+    [
+      ['/icon-192.png', '192x192', 'image/png'],
+      ['/icon-512.png', '512x512', 'image/png'],
+      ['/icon.svg', 'any', 'image/svg+xml'],
+    ],
+  );
+  for (const size of [192, 512]) {
+    const png = fs.readFileSync(path.join(projectRoot, 'public', `icon-${size}.png`));
+    assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    assert.equal(png.readUInt32BE(16), size);
+    assert.equal(png.readUInt32BE(20), size);
+  }
+});
